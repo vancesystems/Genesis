@@ -1,0 +1,25 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environments
+venv/
+.env/
+.venv/
+
+# VS Code
+.vscode/
+
+# Chroma DB
+chroma_db/
+*.sqlite3
+*.db
+
+# Temporary test file
+test.py
+test_chunk_embeddings.py
+test_embedding.py
+
+# OS junk
+.DS_Store
+Thumbs.db
