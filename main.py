@@ -3,6 +3,8 @@ from chunker import chunk_notes
 from vector_store import get_collection, add_chunk, search_chunks
 from embedder import embed_chunk, embed_text
 from lexical_searcher import exact_search_chunks
+from llm_client import send_prompt
+from context_builder import build_prompt
 
 VAULT_PATH = r"D:/vault"
 
@@ -103,6 +105,13 @@ def print_hybrid_results(results):
         print("Header", result["heading"])
         print("Preview:", result["text"][:1000])
 
+def ask_vault_ai():
+    user_question = input("What would you like to ask: ")
+    hybrid_results = hybrid_search(user_question)
+    final_prompt = build_prompt(user_question, hybrid_results)
+    llm_answer = send_prompt(final_prompt)
+    print(llm_answer)
+
 def ask_vault():
     user_question = input("What would you like to search for? ")
     results = hybrid_search(user_question)
@@ -112,12 +121,14 @@ def ask_vault():
 
 if __name__ =="__main__": 
     while True: 
-        user_input = input("Would you like to:\n 1. Index vault \n 2. Ask vault \n 3. Exit ")
+        user_input = input("Would you like to:\n 1. Index vault \n 2. Ask vault \n 3. Ask ai \n 4. Exit ")
         if user_input.lower() == "1" or user_input.lower() == "index vault":
             index_vault()
         elif user_input.lower() == "2" or  user_input.lower() == "ask vault":
             ask_vault()
-        elif user_input.lower() == "3" or user_input.lower() == "Exit":
+        elif user_input.lower() == "3" or  user_input.lower() == "ask ai":
+            ask_vault_ai()
+        elif user_input.lower() == "4" or user_input.lower() == "Exit":
             break
         else:
             print("Invaild option")
