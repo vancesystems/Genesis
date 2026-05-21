@@ -1,0 +1,78 @@
+from models import SearchResult
+from vault_reader import read_vault
+from chunker import chunk_notes
+from vector_store import get_collection, search_chunks
+from embedder import embed_text
+from lexical_searcher import exact_search_chunks
+
+def combine_results(lexical_results, semantic_results, max_results):
+    ranked_results = {}
+
+    for results in lexical_results:
+        chunk = results["chunk"]
+        chunk_score = results["score"]
+        matched_terms = results["matched_terms"]
+
+        ranked_results[chunk.chunk_id] = SearchResult(
+            chunk.note_title,
+            chunk.note_path,
+            chunk.section_index,
+            chunk.chunk_index,
+            chunk.heading,
+            chunk.text,
+            chunk_score,
+            0,
+            chunk_score,
+            matched_terms,
+            signals=["lexical_match"]
+        )
+
+    semantic_ids = semantic_results["ids"][0]
+    semantic_docs = semantic_results["documents"][0]
+    semantic_meta = semantic_results["metadatas"][0]
+
+    for index in range(len(semantic_ids)):
+        id_chunk = semantic_ids[index]
+        text = semantic_docs[index]
+        meta_data = semantic_meta[index]
+        semantic_score = 10 - index
+
+        if id_chunk in ranked_results:
+            ranked_results[id_chunk].semantic_score = semantic_score
+            ranked_results[id_chunk].final_score += semantic_score
+            ranked_results[id_chunk].signals.append("semantic_match")
+        else:
+            ranked_results[id_chunk] = SearchResult(
+                meta_data["note_title"],
+                meta_data["note_path"],
+                meta_data["section_index"],
+                meta_data["chunk_index"],
+                meta_data.get("heading", "No Heading"),
+                text,
+                0,
+                semantic_score,
+                semantic_score,
+                [],
+                signals=["semantic_match"]
+            )
+
+    result_list = list(ranked_results.values())
+    result_list.sort(key=lambda result: result.final_score, reverse=True)
+
+    return result_list[:max_results]
+
+def hybrid_search(query, vault_path, max_results=5):
+    notes = read_vault(vault_path)
+    chunked_notes = chunk_notes(notes)
+    exact_results = exact_search_chunks(chunked_notes, query, 10)
+    embedded_query = embed_text(query)
+    collection = get_collection()
+    semantic_results = search_chunks(collection, embedded_query, n_results=10)
+
+    combined_results = combine_results(
+        exact_results,
+        semantic_results,
+        max_results=max_results
+    )
+
+    return combined_results

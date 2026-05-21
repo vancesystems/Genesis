@@ -1,18 +1,5 @@
 from operator import itemgetter
-STOP_WORDS = {
-    "a", "an", "the",
-    "is", "are", "was", "were",
-    "what", "how", "why", "when", "where",
-    "do", "does", "did",
-    "and", "or", "but",
-    "to", "of", "in", "on", "for", "with",
-    "this", "that", "these", "those",
-    "it", "its",
-    "be", "been", "being",
-    "as", "by", "from",
-    "at", "into", "about",
-    "systems"
-}
+from config import settings
 
 
 def exact_search_chunks(chunks, query, max_results=5):
@@ -22,15 +9,15 @@ def exact_search_chunks(chunks, query, max_results=5):
     clean_query = []
 
     for term in query_words:
-        if term not in STOP_WORDS:
+        if term not in settings.lexical_stop_words:
             clean_query.append(term)
 
     for chunk in chunks:
         chunk_score = 0
         matched_term = []
-        note_title = chunk["note_title"]
-        text = chunk["text"]
-        heading = chunk.get("heading", "")
+        note_title = chunk.note_title
+        text = chunk.text
+        heading = chunk.heading
 
         for term in clean_query:
             if term in note_title.lower():

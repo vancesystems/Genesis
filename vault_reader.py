@@ -1,7 +1,8 @@
 from pathlib import Path
+from models import Note
 
 
-def read_vault(vault_path: str) -> list[dict]:
+def read_vault(vault_path: str):
     """
     Read all markdown files from an Obsidian vault.
 
@@ -19,27 +20,8 @@ def read_vault(vault_path: str) -> list[dict]:
     for file_path in vault.rglob("*.md"):
         text = file_path.read_text(encoding="utf-8", errors="ignore")
 
-        note = {
-            "title": file_path.stem,
-            "path": str(file_path),
-            "relative_path": str(file_path.relative_to(vault)),
-            "text": text,
-        }
+        note = Note(file_path.stem, str(file_path), str(file_path.relative_to(vault)), text)
 
         notes.append(note)
 
     return notes
-
-
-if __name__ == "__main__":
-    VAULT_PATH = r"d:\vault"
-
-    notes = read_vault(VAULT_PATH)
-
-    print(f"Found {len(notes)} notes.")
-
-    for note in notes[:5]:
-        print("-----")
-        print("Title:", note["title"])
-        print("Path:", note["relative_path"])
-        print("Preview:", note["text"][:200])

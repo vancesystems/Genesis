@@ -1,13 +1,7 @@
-LLM_MODEL = "qwen2.5:7b"
 import ollama
+from config import settings
 
 def send_prompt(prompt):
-    response = ollama.generate(model=LLM_MODEL,
+    response = ollama.generate(model=settings.llm_model,
                                prompt=prompt)
     return response["response"]
-
-if __name__ == "__main__":
-    prompt = "What is a string method"
-    response = send_prompt(prompt)
-
-    print(response)
