@@ -30,19 +30,7 @@ qwen2.5:7b
 
 Architecture:
 
-Vault Files
-↓
-Chunking
-↓
-Embeddings
-↓
-Vector Storage
-↓
-Hybrid Retrieval
-↓
-Context Assembly
-↓
-Local AI Reasoning
+Vault Files -> Chunking -> Embeddings -> Vector Storage -> Hybrid Retrieval -> Context Assembly -> Local AI Reasoning
 
 Planned Features
 SQLite structured memory layer
