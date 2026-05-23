@@ -1,0 +1,144 @@
+import sqlite3
+from models import Chunk
+
+def get_connection():
+    conn = sqlite3.connect("obsidian_notes.db")
+
+    conn.row_factory = sqlite3.Row
+
+    return conn
+
+def create_tables():
+    conn = get_connection()
+
+    c = conn.cursor()
+
+    c.execute("""CREATE TABLE IF NOT EXISTS notes_table (
+              title TEXT NOT NULL,
+              path TEXT PRIMARY KEY,
+              relative_path TEXT,
+              text TEXT
+               
+            )""")
+
+    c.execute("""CREATE TABLE IF NOT EXISTS chunk_table (
+              chunk_id TEXT PRIMARY KEY,
+              note_title TEXT NOT NULL,
+              note_path TEXT NOT NULL,
+              section_index INTEGER,
+              chunk_index INTEGER,
+              heading TEXT,
+              text TEXT 
+               
+            )""")
+    
+    conn.commit()
+
+    conn.close()
+
+
+def save_note(note):
+    conn = get_connection()
+
+    c = conn.cursor()
+
+    c.execute(
+        "REPLACE INTO notes_table VALUES (?,?,?,?)",
+        (note.title, note.path, note.relative_path, note.text)
+    )
+
+    conn.commit()
+    conn.close()
+
+def save_chunk(chunk):
+    conn = get_connection()
+
+    c = conn.cursor()
+    
+    c.execute(
+        "REPLACE INTO chunk_table VALUES (?,?,?,?,?,?,?)",
+        (chunk.chunk_id, chunk.note_title, chunk.note_path, chunk.section_index, chunk.chunk_index, chunk.heading, chunk.text)
+    )
+
+    conn.commit()
+
+    conn.close()
+
+def get_all_notes():
+  conn = get_connection()
+
+  c = conn.cursor()
+
+  c.execute("SELECT * FROM notes_table")
+
+  items = c.fetchall()
+
+  conn.close()
+
+  return items
+
+def get_chunks_for_note(note_path):
+    conn = get_connection()
+
+    c = conn.cursor()
+
+    c.execute("SELECT * FROM chunk_table WHERE note_path = ?",
+              (note_path,)
+              )
+    
+    results = c.fetchall()
+
+    conn.close()
+
+    return results
+
+def delete_chunks_for_note(note_path):
+    conn = get_connection()
+
+    c = conn.cursor()
+
+    c.execute("DELETE FROM chunk_table WHERE note_path = ?",
+              (note_path,)
+              )
+    conn.commit()
+
+    conn.close()
+
+def get_all_chunks():
+    conn = get_connection()
+
+    c = conn.cursor()
+
+    c.execute("SELECT * FROM chunk_table")
+    
+    results = c.fetchall()
+
+    conn.close()
+
+    return results
+
+def get_chunk_by_id(chunk_id):
+    conn = get_connection()
+
+    c = conn.cursor()
+
+    c.execute("SELECT * FROM chunk_table WHERE chunk_id = ?",
+              (chunk_id, )
+              )
+    
+    results = c.fetchone()
+
+    conn.close()
+
+    return results
+
+def get_all_chunk_objects():
+    chunks = get_all_chunks()
+    chunk_list = []
+
+    for chunk in chunks:
+        chunk_object = Chunk(chunk["chunk_id"], chunk["note_title"], chunk["note_path"], chunk["section_index"], 
+                             chunk["chunk_index"], chunk["heading"], chunk["text"])
+        chunk_list.append(chunk_object)
+
+    return chunk_list

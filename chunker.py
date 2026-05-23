@@ -36,7 +36,7 @@ def chunk_text(text):
         sliced_text = text[start_pos:end_pos]
         block_text.append(sliced_text)
         start_pos = end_pos - settings.chunk_overlap
-        return block_text
+    return block_text
 
 def chunk_notes(notes):
     all_chunks = []

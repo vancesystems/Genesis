@@ -4,6 +4,7 @@ from chunker import chunk_notes
 from vector_store import get_collection, search_chunks
 from embedder import embed_text
 from lexical_searcher import exact_search_chunks
+from notes_db import *
 
 def combine_results(lexical_results, semantic_results, max_results):
     ranked_results = {}
@@ -61,9 +62,8 @@ def combine_results(lexical_results, semantic_results, max_results):
 
     return result_list[:max_results]
 
-def hybrid_search(query, vault_path, max_results=5):
-    notes = read_vault(vault_path)
-    chunked_notes = chunk_notes(notes)
+def hybrid_search(query, max_results=5):
+    chunked_notes = get_all_chunk_objects()
     exact_results = exact_search_chunks(chunked_notes, query, 10)
     embedded_query = embed_text(query)
     collection = get_collection()

@@ -10,6 +10,12 @@ venv/
 # VS Code
 .vscode/
 
+# SQL Learning
+.sql_study/
+
+# SQL Database
+obsidian_notes.db
+
 # Chroma DB
 chroma_db/
 *.sqlite3

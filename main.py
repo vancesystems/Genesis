@@ -6,11 +6,21 @@ from llm_client import send_prompt
 from context_builder import build_prompt
 from search_service import hybrid_search
 from config import settings
+from notes_db import *
 
 def index_vault():
+    create_tables()
     notes = read_vault(settings.vault_path)
     chunked_note = chunk_notes(notes)
     collection = get_collection()
+
+    for note in notes:
+        delete_chunks_for_note(note.path)
+        save_note(note)
+
+    for chunk in chunked_note:
+        save_chunk(chunk)
+
     for index, chunk in enumerate(chunked_note):
         print(f"Indexing {index + 1}/{len(chunked_note)}: {chunk.note_title}")
         embedded_chunk = embed_chunk(chunk)
@@ -45,7 +55,7 @@ def print_retrieval_trace(results):
 
 def ask_vault_ai():
     user_question = input("What would you like to ask: ")
-    hybrid_results = hybrid_search(user_question, settings.vault_path)
+    hybrid_results = hybrid_search(user_question)
     print_retrieval_trace(hybrid_results)
     final_prompt = build_prompt(user_question, hybrid_results)
     llm_answer = send_prompt(final_prompt)
@@ -53,7 +63,7 @@ def ask_vault_ai():
 
 def ask_vault():
     user_question = input("What would you like to search for? ")
-    results = hybrid_search(user_question, settings.vault_path)
+    results = hybrid_search(user_question)
 
     print_hybrid_results(results)
 
@@ -69,5 +79,9 @@ if __name__ =="__main__":
             ask_vault_ai()
         elif user_input.lower() == "4" or user_input.lower() == "Exit":
             break
+        elif user_input.lower() == "5" or user_input.lower() == "Check":
+            # Debug option not for users hidden from main menu
+            notes = get_all_notes()
+            print(notes)
         else:
             print("Invaild option")
