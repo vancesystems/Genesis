@@ -28,3 +28,11 @@ def search_chunks(collection, query_embedding, n_results=5):
     )
 
     return results
+
+def delete_note_vectors(collection, note_path):
+    results = collection.get(
+        where={"note_path": note_path}
+    )
+
+    if results["ids"]:
+        collection.delete(ids=results["ids"])

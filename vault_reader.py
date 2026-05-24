@@ -1,5 +1,8 @@
 from pathlib import Path
 from models import Note
+import hashlib
+
+from datetime import datetime
 
 
 def read_vault(vault_path: str):
@@ -20,7 +23,11 @@ def read_vault(vault_path: str):
     for file_path in vault.rglob("*.md"):
         text = file_path.read_text(encoding="utf-8", errors="ignore")
 
-        note = Note(file_path.stem, str(file_path), str(file_path.relative_to(vault)), text)
+        content_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+        last_indexed = datetime.now()
+
+        note = Note(file_path.stem, str(file_path), str(file_path.relative_to(vault)), text, content_hash, last_indexed)
 
         notes.append(note)
 

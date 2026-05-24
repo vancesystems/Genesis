@@ -17,7 +17,9 @@ def create_tables():
               title TEXT NOT NULL,
               path TEXT PRIMARY KEY,
               relative_path TEXT,
-              text TEXT
+              text TEXT,
+              content_hash TEXT,
+              last_indexed TEXT
                
             )""")
 
@@ -42,9 +44,11 @@ def save_note(note):
 
     c = conn.cursor()
 
+    last_indexed = note.last_indexed.isoformat()
+
     c.execute(
-        "REPLACE INTO notes_table VALUES (?,?,?,?)",
-        (note.title, note.path, note.relative_path, note.text)
+        "REPLACE INTO notes_table VALUES (?,?,?,?,?,?)",
+        (note.title, note.path, note.relative_path, note.text, note.content_hash, last_indexed)
     )
 
     conn.commit()
@@ -77,6 +81,21 @@ def get_all_notes():
 
   return items
 
+def get_note_by_path(path):
+    conn = get_connection()
+
+    c = conn.cursor()
+
+    c.execute("SELECT * FROM notes_table WHERE path = ?",
+              (path, )
+            )
+    
+    result = c.fetchone()
+
+    conn.close()
+
+    return result
+
 def get_chunks_for_note(note_path):
     conn = get_connection()
 
@@ -103,6 +122,36 @@ def delete_chunks_for_note(note_path):
     conn.commit()
 
     conn.close()
+
+def delete_note_by_path(path):
+    conn = get_connection()
+
+    c = conn.cursor()
+
+    c.execute("DELETE FROM notes_table WHERE path = ?",
+              (path,))
+    
+    conn.commit()
+
+    conn.close()
+
+def get_all_note_paths():
+    conn = get_connection()
+
+    c = conn.cursor()
+
+    c.execute("SELECT path FROM notes_table")
+
+    result = c.fetchall()
+
+    vault_paths = set()
+
+    for row in result:
+        vault_paths.add(row["path"])
+
+    conn.close()
+
+    return vault_paths
 
 def get_all_chunks():
     conn = get_connection()
