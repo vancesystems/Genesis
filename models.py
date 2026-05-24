@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 
 
 @dataclass
@@ -7,6 +8,8 @@ class Note:
     path: str
     relative_path: str
     text: str
+    content_hash: str
+    last_indexed: datetime
 
 @dataclass
 class Chunk:

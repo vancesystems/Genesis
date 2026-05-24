@@ -1,6 +1,6 @@
 from vault_reader import read_vault
 from chunker import chunk_notes
-from vector_store import get_collection, add_chunk
+from vector_store import get_collection, add_chunk, delete_note_vectors
 from embedder import embed_chunk
 from llm_client import send_prompt
 from context_builder import build_prompt
@@ -11,20 +11,53 @@ from notes_db import *
 def index_vault():
     create_tables()
     notes = read_vault(settings.vault_path)
-    chunked_note = chunk_notes(notes)
     collection = get_collection()
 
+    reindexed_count = 0
+    skipped_count = 0
+    deleted_count = 0
+    embedded_chunk_count = 0
+
+    current_vault_paths = {note.path for note in notes}
+    database_paths = get_all_note_paths()
+
+    deleted_paths = database_paths - current_vault_paths
+
+    for path in deleted_paths:
+        deleted_count += 1
+        print(f"Removing deleted note from index: {path}")
+        delete_chunks_for_note(path)
+        delete_note_vectors(collection, path)
+        delete_note_by_path(path)
+
     for note in notes:
-        delete_chunks_for_note(note.path)
-        save_note(note)
+        old_note = get_note_by_path(note.path)
 
-    for chunk in chunked_note:
-        save_chunk(chunk)
+        if old_note and note.content_hash == old_note["content_hash"]:
+            skipped_count += 1
+            print(f"Skipping unchanged note: {note.title}")
+            continue
+        else:
+            reindexed_count += 1
+            delete_chunks_for_note(note.path)
+            delete_note_vectors(collection, note.path)
+            save_note(note)
+            chunked_note = chunk_notes([note])
 
-    for index, chunk in enumerate(chunked_note):
-        print(f"Indexing {index + 1}/{len(chunked_note)}: {chunk.note_title}")
-        embedded_chunk = embed_chunk(chunk)
-        add_chunk(collection, chunk, embedded_chunk)
+            for chunk in chunked_note:
+                save_chunk(chunk)
+
+            for index, chunk in enumerate(chunked_note):
+                embedded_chunk_count += 1
+                print(f"Indexing chunk {index + 1}/{len(chunked_note)}: {chunk.note_title}")
+                embedded_chunk = embed_chunk(chunk)
+                add_chunk(collection, chunk, embedded_chunk)
+
+    print(f"Index complete:")
+    print(f"Reindexed: {reindexed_count} note(s)")
+    print(f"Skipped: {skipped_count} note(s)")
+    print(f"Deleted: {deleted_count} note(s)")
+    print(f"Chunk(s) embedded: {embedded_chunk_count}")
 
 def print_hybrid_results(results):
     for result in results:
