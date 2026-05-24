@@ -1,47 +1,137 @@
-Genesis
+# Genesis
 
 Genesis is a local-first semantic retrieval and AI assistant system built around an Obsidian vault.
 
-The project focuses on:
+The project is designed to transform a collection of notes into an intelligent knowledge system capable of retrieval, contextual understanding, and grounded AI responses.
 
-semantic search
-hybrid retrieval
-local AI reasoning
-contextual vault intelligence
+Genesis currently focuses on:
 
-Genesis currently supports:
+* Semantic search
+* Hybrid retrieval
+* Local AI reasoning
+* Contextual vault intelligence
 
-markdown vault ingestion
-heading-aware chunking
-embeddings with Ollama
-ChromaDB vector storage
-lexical + semantic hybrid retrieval
-retrieval tracing
-grounded AI responses
-Current Stack
-Python
-Ollama
-ChromaDB
-Local LLMs
-Local embeddings
-Current Models
-nomic-embed-text
-qwen2.5:7b
+---
 
-Architecture:
+## Current Features
 
-Vault Files -> Chunking -> Embeddings -> Vector Storage -> Hybrid Retrieval -> Context Assembly -> Local AI Reasoning
+* Markdown vault ingestion
+* Heading-aware chunking
+* Local embedding generation through Ollama
+* ChromaDB vector storage
+* Lexical + semantic hybrid retrieval
+* Retrieval tracing and scoring visibility
+* Grounded AI responses with source attribution
+* Incremental indexing with content-hash change detection
+* Skipping unchanged notes for faster indexing
+* Deleted note cleanup and vector synchronization
 
-Planned Features
-SQLite structured memory layer
-graph-aware retrieval
-relationship discovery
-project memory systems
-long-term contextual intelligence
-TypeScript frontend
+---
 
-Goal
+## Current Stack
+
+* Python
+* Ollama
+* ChromaDB
+* Local LLMs
+* Local embedding models
+* SQLite
+
+---
+
+## Current Models
+
+Embedding Model:
+
+* `nomic-embed-text`
+
+LLM:
+
+* `qwen2.5:7b`
+
+---
+
+## Architecture
+
+```text
+Vault Files
+    ↓
+Markdown Parsing
+    ↓
+Heading-Aware Chunking
+    ↓
+Embedding Generation
+    ↓
+Vector Storage
+    ↓
+Hybrid Retrieval
+    ↓
+Context Assembly
+    ↓
+Local AI Reasoning
+```
+
+---
+
+## Screenshots
+
+### CLI Interface
+
+The current Genesis interface is terminal-based and provides access to indexing, retrieval, and AI interaction workflows.
+
+![CLI Menu](screenshots/menu.png)
+
+---
+
+### Incremental Indexing System
+
+Genesis tracks content changes through hashing and avoids rebuilding unchanged notes. This significantly reduces unnecessary processing time when working with larger vaults.
+
+![Incremental Indexing](screenshots/incremental_indexing.png)
+
+---
+
+### Hybrid Retrieval Trace
+
+Genesis combines lexical matching with semantic retrieval and exposes scoring signals to make retrieval behavior transparent during development.
+
+This output shows:
+
+* lexical score contribution
+* semantic score contribution
+* matched terms
+* retrieval signals
+* source metadata
+
+![Hybrid Retrieval](screenshots/hybrid_search.png)
+
+---
+
+### Grounded AI Responses
+
+Responses are generated using retrieved vault context rather than relying entirely on model memory. Source references are included to show where information originated.
+
+![Grounded AI Response](screenshots/grounded_response.png)
+
+---
+
+## Planned Features
+
+* SQLite structured memory layer
+* Graph-aware retrieval
+* Relationship discovery
+* Project memory systems
+* Long-term contextual intelligence
+* TypeScript frontend
+* Backlinks and knowledge relationships
+* Conversation history and persistent context
+
+---
+
+## Goal
 
 The long-term goal of Genesis is to evolve beyond a simple chatbot into:
 
-a local semantic intelligence system for engineering knowledge, retrieval, and contextual reasoning.
+> A local semantic intelligence system designed for engineering knowledge, retrieval, and contextual reasoning.
+
+The aim is to create an AI system that does more than answer questions — one that can build understanding, preserve context, and act as a long-term knowledge companion.
