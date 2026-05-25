@@ -32,7 +32,7 @@ lexical_stop_words = STOP_WORDS = {
     "be", "been", "being",
     "as", "by", "from",
     "at", "into", "about",
-    "systems"
+    "systems", "?"
 }
 
 settings = AppConfig(vault_path, embed_model, llm_model, chroma_path, collection_name, default_max_results, lexical_stop_words, chunk_size, chunk_overlap)
