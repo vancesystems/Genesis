@@ -5,6 +5,7 @@ from vector_store import get_collection, search_chunks
 from embedder import embed_text
 from lexical_searcher import exact_search_chunks
 from notes_db import *
+from reciprocal_rank_fusion import *
 
 def combine_results(lexical_results, semantic_results, max_results):
     ranked_results = {}
@@ -69,11 +70,9 @@ def hybrid_search(query, max_results=5):
     collection = get_collection()
     semantic_results = search_chunks(collection, embedded_query, n_results=10)
 
-    combined_results = combine_results(
-        exact_results,
-        semantic_results,
-        max_results=max_results
-    )
+    rrf_record = rrf(exact_results, semantic_results)
+
+    combined_results = rrf_to_search_results(rrf_record, max_results)
 
     fetch_diagnostics(exact_results, semantic_results, combined_results)
 
