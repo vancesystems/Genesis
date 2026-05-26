@@ -21,6 +21,9 @@ chroma_db/
 *.sqlite3
 *.db
 
+# Inspo
+.inspo/
+
 # Temporary test file
 test.py
 test_chunk_embeddings.py

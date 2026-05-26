@@ -5,6 +5,7 @@ from vector_store import get_collection, search_chunks
 from embedder import embed_text
 from lexical_searcher import exact_search_chunks
 from notes_db import *
+from reciprocal_rank_fusion import *
 
 def combine_results(lexical_results, semantic_results, max_results):
     ranked_results = {}
@@ -69,10 +70,50 @@ def hybrid_search(query, max_results=5):
     collection = get_collection()
     semantic_results = search_chunks(collection, embedded_query, n_results=10)
 
-    combined_results = combine_results(
-        exact_results,
-        semantic_results,
-        max_results=max_results
-    )
+    rrf_record = rrf(exact_results, semantic_results)
+
+    combined_results = rrf_to_search_results(rrf_record, max_results)
+
+    fetch_diagnostics(exact_results, semantic_results, combined_results)
 
     return combined_results
+
+def fetch_diagnostics(lexical_results, semantic_results, combined_results, debug=True):
+    if debug:
+        print("LEXICAL CANDIDATES:")
+        print("-------------------")
+        for result in lexical_results:
+            chunk = result["chunk"]
+            note_title = chunk.note_title
+            score = result["score"]
+            heading = chunk.heading
+            matched_terms = result["matched_terms"]
+            print(f"Note Title: {note_title}")
+            print(f"Heading: {heading}")
+            print(f"Score: {score}")
+            print(f"Matched Terms: {matched_terms}")
+
+        print("SEMANTIC CANDIDATES:")
+        print("-------------------")
+        for index, result in enumerate(semantic_results["metadatas"][0]):
+            s_note_title = result["note_title"]
+            s_heading = result.get("heading", "No Heading")
+            rank = index + 1
+            print(f"Note Title: {s_note_title}")
+            print(f"Heading: {s_heading}")
+            print(f"Rank: {rank}")
+
+        print("COMBINED RESULTS")
+        print("-------------------")
+        for index, result in enumerate(combined_results):
+            c_title = result.title
+            final_score = result.final_score
+            result_heading = result.heading
+            signals = result.signals
+            final_ranking = index + 1
+
+            print(f"{final_ranking}.")
+            print(f"Title: {c_title}")
+            print(f"Final Score: {final_score}")
+            print(f"Heading: {result_heading}")
+            print(f"Signals: {signals}")
