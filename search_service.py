@@ -6,6 +6,8 @@ from embedder import embed_text
 from lexical_searcher import exact_search_chunks
 from notes_db import *
 from reciprocal_rank_fusion import *
+from query_analyzer import QueryAnalyzer
+from config import settings
 
 def combine_results(lexical_results, semantic_results, max_results):
     ranked_results = {}
@@ -65,8 +67,10 @@ def combine_results(lexical_results, semantic_results, max_results):
 
 def hybrid_search(query, max_results=5):
     chunked_notes = get_all_chunk_objects()
-    exact_results = exact_search_chunks(chunked_notes, query, 10)
-    embedded_query = embed_text(query)
+    analyzer = QueryAnalyzer(settings.lexical_stop_words, settings.intent_terms, settings.descriptor_terms)
+    analysis = analyzer.analyze(query)
+    exact_results = exact_search_chunks(chunked_notes, analysis.lexical_text, 10)
+    embedded_query = embed_text(analysis.semantic_text)
     collection = get_collection()
     semantic_results = search_chunks(collection, embedded_query, n_results=10)
 
