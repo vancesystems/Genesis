@@ -78,12 +78,33 @@ def hybrid_search(query, max_results=5):
 
     combined_results = rrf_to_search_results(rrf_record, max_results)
 
-    fetch_diagnostics(exact_results, semantic_results, combined_results)
+    fetch_diagnostics(analysis, exact_results, semantic_results, combined_results)
 
     return combined_results
 
-def fetch_diagnostics(lexical_results, semantic_results, combined_results, debug=True):
+def fetch_diagnostics(analysis, lexical_results, semantic_results, combined_results, debug=True):
     if debug:
+        
+        print("QUERY ANALYSIS")
+        print("-------------------")
+        raw_query = analysis.original_query
+        lexical_query = analysis.lexical_text
+        semantic_query = analysis.semantic_text
+        tokens = analysis.tokens
+        ignored = analysis.ignored_terms
+        intent = analysis.intent_terms
+        descriptors = analysis.descriptor_terms
+        anchors = analysis.anchor_terms
+
+        print(f"Raw Query: {raw_query}")
+        print(f"Lexical Query: {lexical_query}")
+        print(f"Semantic Query: {semantic_query}")
+        print(f"Tokens: {tokens}")
+        print(f"Ignored Terms: {ignored}")
+        print(f"Intent Terms: {intent}")
+        print(f"Descriptor Terms: {descriptors}")
+        print(f"Anchor Terms: {anchors}")
+
         print("LEXICAL CANDIDATES:")
         print("-------------------")
         for result in lexical_results:
