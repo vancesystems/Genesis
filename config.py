@@ -11,6 +11,8 @@ class AppConfig:
     lexical_stop_words: set
     chunk_size: int
     chunk_overlap: int
+    intent_terms: set
+    descriptor_terms: set
 
 vault_path = r"D:/vault"
 embed_model = "nomic-embed-text"
@@ -35,4 +37,83 @@ lexical_stop_words = STOP_WORDS = {
     "systems", "?"
 }
 
-settings = AppConfig(vault_path, embed_model, llm_model, chroma_path, collection_name, default_max_results, lexical_stop_words, chunk_size, chunk_overlap)
+intent_terms = INTENT_TERMS = {
+    "overview",
+    "summary",
+    "explain",
+    "compare",
+    "difference",
+    "roadmap",
+    "architecture",
+    "goal",
+    "plan",
+    "decision",
+    "purpose",
+    "reason",
+    "workflow",
+    "pipeline",
+    "how",
+    "why",
+    "what",
+    "describe",
+    "details",
+    "design",
+    "implementation",
+    "issue",
+    "problem",
+    "solution",
+    "status",
+    "progress",
+    "future",
+    "next",
+    "todo",
+    "steps"
+}
+
+descriptor_terms = DESCRIPTOR_TERMS = {
+    "project",
+    "system",
+    "engine",
+    "module",
+    "service",
+    "pipeline",
+    "retrieval",
+    "search",
+    "query",
+    "ranking",
+    "embedding",
+    "vector",
+    "database",
+    "context",
+    "chunk",
+    "chunking",
+    "architecture",
+    "analysis",
+    "prompt",
+    "prompting",
+    "model",
+    "memory",
+    "rag",
+    "graph",
+    "vault",
+    "index",
+    "indexing",
+    "note",
+    "notes",
+    "semantic",
+    "lexical",
+    "fusion",
+    "reranking",
+    "routing",
+    "metadata",
+    "parser",
+    "token",
+    "tokens",
+    "classification",
+    "diagnostics",
+    "results",
+    "signals",
+    "weighting"
+}
+
+settings = AppConfig(vault_path, embed_model, llm_model, chroma_path, collection_name, default_max_results, lexical_stop_words, chunk_size, chunk_overlap, intent_terms, descriptor_terms)
