@@ -1,0 +1,2 @@
+chromadb>=1.0.0
+ollama>=0.5.0
