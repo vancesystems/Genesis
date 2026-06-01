@@ -65,7 +65,7 @@ def combine_results(lexical_results, semantic_results, max_results):
 
     return result_list[:max_results]
 
-def hybrid_search(query, max_results=5):
+def hybrid_search(query, debug=False, max_results=5):
     chunked_notes = get_all_chunk_objects()
     analyzer = QueryAnalyzer(settings.lexical_stop_words, settings.intent_terms, settings.descriptor_terms)
     analysis = analyzer.analyze(query)
@@ -78,7 +78,8 @@ def hybrid_search(query, max_results=5):
 
     combined_results = rrf_to_search_results(rrf_record, max_results)
 
-    fetch_diagnostics(analysis, exact_results, semantic_results, combined_results)
+    if debug:
+        fetch_diagnostics(analysis, exact_results, semantic_results, combined_results)
 
     return combined_results
 
