@@ -112,9 +112,5 @@ if __name__ =="__main__":
             ask_vault_ai()
         elif user_input.lower() == "4" or user_input.lower() == "Exit":
             break
-        elif user_input.lower() == "5" or user_input.lower() == "Check":
-            # Debug option not for users hidden from main menu
-            notes = get_all_notes()
-            print(notes)
         else:
             print("Invaild option")
