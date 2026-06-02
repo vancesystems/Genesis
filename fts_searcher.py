@@ -1,20 +1,32 @@
 from notes_db import *
+import re
 
 def query_fts_table(query):
-    conn = get_connection()
+    safe_query = re.sub(r"[^a-zA-Z0-9\s]", " ", query)
+    safe_query = " ".join(safe_query.split())
 
+    if not safe_query:
+        return []
+
+    conn = get_connection()
     c = conn.cursor()
 
     c.execute(
-        "SELECT chunk_id, bm25(chunks_fts) AS score FROM chunks_fts WHERE chunks_fts MATCH ? ORDER BY score LIMIT 5",
-        (query,)
+        """
+        SELECT chunk_id, bm25(chunks_fts) AS score
+        FROM chunks_fts
+        WHERE chunks_fts MATCH ?
+        ORDER BY score
+        LIMIT 5
+        """,
+        (safe_query,)
     )
 
-    result = c.fetchall()
+    results = c.fetchall()
 
     conn.close()
 
-    return result
+    return results
 
 def search_chunks_fts(query):
     results = query_fts_table(query)

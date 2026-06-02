@@ -75,6 +75,11 @@ TEST_CASES = [
         "query": "What is graph intelligence?",
         "expected_titles": ["Graph Intelligence", "Graph Systems"],
         "top_k": 5
+    },
+    {
+        "query": "Deeply explain what Project E.Y.E.S is",
+        "expected_titles": ["Project E.Y.E.S Roadmap"],
+        "top_k": 5
     }
 ]
 
@@ -128,6 +133,6 @@ print(f"Tests Ran: {tests_ran}")
 print(f"Passed: {passed_tests}")
 print(f"Failed: {failed_tests}")
 recallk = passed_tests / tests_ran * 100
-average_rank = total_rank / passed_tests
-print(f"Recall@{top_k}: {recallk}%")
+average_rank = total_rank / passed_tests if passed_tests else 0
+print(f"Recall@K: {recallk:.2f}%")
 print(f"Average Found Rank: {average_rank:.2f}")

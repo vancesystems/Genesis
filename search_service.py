@@ -107,18 +107,15 @@ def fetch_diagnostics(analysis, lexical_results, semantic_results, combined_resu
         print(f"Descriptor Terms: {descriptors}")
         print(f"Anchor Terms: {anchors}")
 
-        print("LEXICAL CANDIDATES:")
+        print("FTS5 LEXICAL CANDIDATES")
         print("-------------------")
         for result in lexical_results:
             chunk = result["chunk"]
-            note_title = chunk.note_title
-            score = result["score"]
-            heading = chunk.heading
-            matched_terms = result["matched_terms"]
-            print(f"Note Title: {note_title}")
-            print(f"Heading: {heading}")
-            print(f"Score: {score}")
-            print(f"Matched Terms: {matched_terms}")
+
+            print(f"Note Title: {chunk.note_title}")
+            print(f"Heading: {chunk.heading}")
+            print(f"BM25 Score: {result['score']}")
+            print(f"Matched Terms: {result['matched_terms']}")
 
         print("SEMANTIC CANDIDATES:")
         print("-------------------")
@@ -144,3 +141,5 @@ def fetch_diagnostics(analysis, lexical_results, semantic_results, combined_resu
             print(f"Final Score: {final_score}")
             print(f"Heading: {result_heading}")
             print(f"Signals: {signals}")
+
+        
