@@ -8,6 +8,7 @@ from notes_db import *
 from reciprocal_rank_fusion import *
 from query_analyzer import QueryAnalyzer
 from config import settings
+from fts_searcher import search_chunks_fts
 
 def combine_results(lexical_results, semantic_results, max_results):
     ranked_results = {}
@@ -69,7 +70,7 @@ def hybrid_search(query, debug=False, max_results=5):
     chunked_notes = get_all_chunk_objects()
     analyzer = QueryAnalyzer(settings.lexical_stop_words, settings.intent_terms, settings.descriptor_terms)
     analysis = analyzer.analyze(query)
-    exact_results = exact_search_chunks(chunked_notes, analysis.lexical_text, 10)
+    exact_results = search_chunks_fts(analysis.lexical_text)
     embedded_query = embed_text(analysis.semantic_text)
     collection = get_collection()
     semantic_results = search_chunks(collection, embedded_query, n_results=10)
