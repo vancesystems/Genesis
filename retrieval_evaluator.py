@@ -81,6 +81,7 @@ TEST_CASES = [
 tests_ran = 0
 failed_tests = 0
 passed_tests = 0
+total_rank = 0
 
 for test_case in TEST_CASES:
     query = test_case["query"]
@@ -99,6 +100,7 @@ for test_case in TEST_CASES:
         if title in expected_titles:
             found = True
             found_rank = index + 1
+            total_rank += found_rank
             break
 
     if found:
@@ -126,4 +128,6 @@ print(f"Tests Ran: {tests_ran}")
 print(f"Passed: {passed_tests}")
 print(f"Failed: {failed_tests}")
 recallk = passed_tests / tests_ran * 100
+average_rank = total_rank / passed_tests
 print(f"Recall@{top_k}: {recallk}%")
+print(f"Average Found Rank: {average_rank:.2f}")
