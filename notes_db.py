@@ -34,6 +34,17 @@ def create_tables():
                
             )""")
     
+    c.execute("""
+        CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts
+        USING fts5(
+            chunk_id,
+            note_title,
+            note_path,
+            heading,
+            text
+        )
+        """)
+    
     conn.commit()
 
     conn.close()
@@ -62,6 +73,20 @@ def save_chunk(chunk):
     c.execute(
         "REPLACE INTO chunk_table VALUES (?,?,?,?,?,?,?)",
         (chunk.chunk_id, chunk.note_title, chunk.note_path, chunk.section_index, chunk.chunk_index, chunk.heading, chunk.text)
+    )
+
+    conn.commit()
+
+    conn.close()
+
+def save_chunk_fts(chunk):
+    conn = get_connection()
+
+    c = conn.cursor()
+
+    c.execute(
+        "REPLACE INTO chunks_fts VALUES (?,?,?,?,?)",
+        (chunk.chunk_id, chunk.note_title, chunk.note_path, chunk.heading, chunk.text)
     )
 
     conn.commit()
@@ -119,6 +144,19 @@ def delete_chunks_for_note(note_path):
     c.execute("DELETE FROM chunk_table WHERE note_path = ?",
               (note_path,)
               )
+    conn.commit()
+
+    conn.close()
+
+def delete_fts_for_note(note_path):
+    conn = get_connection()
+
+    c = conn.cursor()
+
+    c.execute("DELETE FROM chunks_fts WHERE note_path = ?",
+              (note_path,)
+              )
+    
     conn.commit()
 
     conn.close()

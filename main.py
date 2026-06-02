@@ -27,6 +27,7 @@ def index_vault():
         deleted_count += 1
         print(f"Removing deleted note from index: {path}")
         delete_chunks_for_note(path)
+        delete_fts_for_note(path)
         delete_note_vectors(collection, path)
         delete_note_by_path(path)
 
@@ -40,12 +41,14 @@ def index_vault():
         else:
             reindexed_count += 1
             delete_chunks_for_note(note.path)
+            delete_fts_for_note(note.path)
             delete_note_vectors(collection, note.path)
             save_note(note)
             chunked_note = chunk_notes([note])
 
             for chunk in chunked_note:
                 save_chunk(chunk)
+                save_chunk_fts(chunk)
 
             for index, chunk in enumerate(chunked_note):
                 embedded_chunk_count += 1
