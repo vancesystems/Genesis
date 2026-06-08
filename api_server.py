@@ -3,8 +3,17 @@ from pydantic import BaseModel
 from search_service import hybrid_search
 from context_builder import build_prompt
 from llm_client import send_prompt
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class SearchRequest(BaseModel):
     query: str
