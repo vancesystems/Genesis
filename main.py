@@ -7,6 +7,7 @@ from context_builder import build_prompt
 from search_service import hybrid_search
 from config import settings
 from notes_db import *
+from performance_eval import PerformanceTimer
 
 def index_vault():
     create_tables()
@@ -85,21 +86,34 @@ def print_retrieval_trace(results):
         print("Header", result.heading)
         print("Path:", result.path)
         print("Final Score:", result.final_score)
-        print("Signals:", result.signals)
+        print("Signals:", result.signals)   
         print("-----")
         print()
 
 def ask_vault_ai():
     user_question = input("What would you like to ask: ")
-    hybrid_results = hybrid_search(user_question)
+    hybrid_results = hybrid_search(user_question, return_timings=False)
+    if not hybrid_results:
+        print("No relevant sources found")
+        return
     print_retrieval_trace(hybrid_results)
     final_prompt = build_prompt(user_question, hybrid_results)
-    llm_answer = send_prompt(final_prompt)
+
+    try:
+        timer = PerformanceTimer()
+        with timer.stage("llm_response"):
+            llm_answer = send_prompt(final_prompt)
+
+        timer.finish()
+        print(timer.get_timings())
+    except Exception as e:
+        print(f"Sources found, but local LLM failed: {e}")
+        return
     print(llm_answer)
 
 def ask_vault():
     user_question = input("What would you like to search for? ")
-    results = hybrid_search(user_question)
+    results = hybrid_search(user_question, return_timings=False)
 
     print_hybrid_results(results)
 
