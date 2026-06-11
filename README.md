@@ -2,7 +2,7 @@
 
 > Open Source Semantic Intelligence Platform
 
-**98.75% Recall@5 • 59ms Average Retrieval Latency • 2,000+ Notes Indexed**
+**98.75% Top-5 Retrieval Success • 0.79 MRR • 113ms Average Retrieval Latency • 2,000+ Notes Indexed**
 
 Genesis is a local-first semantic intelligence platform that transforms personal knowledge bases into searchable, explainable, AI-assisted systems.
 
@@ -26,7 +26,8 @@ Unlike traditional AI assistants, Genesis prioritizes retrieval quality, transpa
 | ------------------------- | ---------------------- |
 | Notes Indexed             | 2,000+                 |
 | Benchmark Queries         | 80                     |
-| Recall@5                  | 98.75%                 |
+| Top-5 Retrieval Success   | 98.75%                 |
+| Mean Reciprocal Rank (MRR)| 0.79                   |
 | Average Found Rank        | 1.58                   |
 | Average Retrieval Latency | 59ms                   |
 | Retrieval Strategy        | Hybrid Retrieval + RRF |
@@ -175,7 +176,8 @@ Genesis includes a dedicated retrieval evaluation harness used to measure retrie
 | Metric                    | Result  |
 | ------------------------- | ------- |
 | Queries Evaluated         | 80      |
-| Recall@5                  | 98.75%  |
+| Top-5 Retrieval Success   | 98.75%  |
+| Mean Reciprocal Rank (MRR)|	0.79    |
 | Average Found Rank        | 1.58    |
 | Average Retrieval Latency | 59ms    |
 | Pass Rate                 | 79 / 80 |
