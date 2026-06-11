@@ -12,6 +12,14 @@ Unlike traditional AI assistants, Genesis prioritizes retrieval quality, transpa
 
 ---
 
+## Demo
+
+![Genesis Demo](gifs/Animation.gif)
+
+*Natural language search, hybrid retrieval, source attribution, and grounded AI responses powered entirely by local infrastructure.*
+
+---
+
 ## Key Metrics
 
 | Metric                    | Result                 |
