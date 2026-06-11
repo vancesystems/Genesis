@@ -9,6 +9,7 @@ from reciprocal_rank_fusion import *
 from query_analyzer import QueryAnalyzer
 from config import settings
 from fts_searcher import search_chunks_fts
+from performance_eval import PerformanceTimer
 
 def combine_results(lexical_results, semantic_results, max_results):
     ranked_results = {}
@@ -66,21 +67,84 @@ def combine_results(lexical_results, semantic_results, max_results):
 
     return result_list[:max_results]
 
-def hybrid_search(query, debug=False, max_results=5):
-    chunked_notes = get_all_chunk_objects()
-    analyzer = QueryAnalyzer(settings.lexical_stop_words, settings.intent_terms, settings.descriptor_terms)
-    analysis = analyzer.analyze(query)
-    exact_results = search_chunks_fts(analysis.lexical_text)
-    embedded_query = embed_text(analysis.semantic_text)
-    collection = get_collection()
-    semantic_results = search_chunks(collection, embedded_query, n_results=10)
+def hybrid_search(query, debug=False, max_results=5, return_timings=False):
+    timer = PerformanceTimer()
+    errors = []
 
-    rrf_record = rrf(exact_results, semantic_results)
+    try:
+        analyzer = QueryAnalyzer(
+            settings.lexical_stop_words,
+            settings.intent_terms,
+            settings.descriptor_terms
+        )
 
-    combined_results = rrf_to_search_results(rrf_record, max_results)
+        with timer.stage("query_analysis"):
+            analysis = analyzer.analyze(query)
+
+    except Exception as e:
+        print(f"Query analysis failed: {e}")
+        if return_timings:
+            timer.finish()
+            return [], timer.get_timings()
+        return []
+
+    try:
+        with timer.stage("lexical"):
+            exact_results = search_chunks_fts(analysis.lexical_text)
+
+    except Exception as e:
+        print(f"Lexical search failed: {e}")
+        errors.append(f"lexical_failed: {e}")
+        exact_results = []
+
+    try:
+        with timer.stage("embed_query"):
+            embedded_query = embed_text(analysis.semantic_text)
+
+        collection = get_collection()
+
+        with timer.stage("vector_search"):
+            semantic_results = search_chunks(collection, embedded_query, n_results=10)
+
+    except Exception as e:
+        print(f"Semantic search failed: {e}")
+        errors.append(f"semantic_failed: {e}")
+        semantic_results = {
+            "ids": [[]],
+            "documents": [[]],
+            "metadatas": [[]]
+        }
+
+    if not exact_results and not semantic_results["ids"][0]:
+        print("Both lexical and semantic search failed.")
+        timer.finish()
+        if return_timings:
+            return [], timer.get_timings()
+        return []
+
+    try:
+        with timer.stage("rrf"):
+            rrf_record = rrf(exact_results, semantic_results)
+
+        combined_results = rrf_to_search_results(rrf_record, max_results)
+
+    except Exception as e:
+        print(f"Fusion failed: {e}")
+        timer.finish()
+        if return_timings:
+            return [], timer.get_timings()
+        return []
+
+    timer.finish()
 
     if debug:
         fetch_diagnostics(analysis, exact_results, semantic_results, combined_results)
+        print(timer.get_timings())
+        if errors:
+            print(errors)
+
+    if return_timings:
+        return combined_results, timer.get_timings()
 
     return combined_results
 
