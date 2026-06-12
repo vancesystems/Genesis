@@ -1,4 +1,7 @@
 from search_service import hybrid_search
+import json
+from datetime import datetime
+from pathlib import Path
 
 TEST_CASES = [
     {
@@ -429,11 +432,14 @@ tests_ran = 0
 failed_tests = 0
 passed_tests = 0
 total_rank = 0
+total_reciprocal_rank = 0
 total_latency_ms = 0
 fastest_query = ""
 fastest_latency_ms = None
 slowest_query = ""
 slowest_latency_ms = 0
+
+query_records = []
 
 for test_case in TEST_CASES:
     query = test_case["query"]
@@ -462,12 +468,14 @@ for test_case in TEST_CASES:
         if title in expected_titles:
             found = True
             found_rank = index + 1
+            total_reciprocal_rank += 1/found_rank
             total_rank += found_rank
             break
 
     if found:
         tests_ran += 1
         passed_tests += 1
+        reciprocal_rank = 1 / found_rank
         print(f"PASS {title}")
         print(f"Query: {query}")
         print(f"Expected: {expected_titles}")
@@ -475,6 +483,17 @@ for test_case in TEST_CASES:
         for title in retrieved_titles:
             print(f"Retrieved: {title}")
         print(f"Top K: {top_k}")
+        single_result = {
+            "query": query,
+            "expected_titles": expected_titles,
+            "retrieved_titles": retrieved_titles,
+            "found": found,
+            "found_rank": found_rank,
+            "reciprocal_rank": reciprocal_rank,
+            "latency_ms": latency,
+            "top_k": top_k,
+            }
+        query_records.append(single_result)
     else:
         tests_ran += 1
         failed_tests += 1
@@ -483,17 +502,48 @@ for test_case in TEST_CASES:
         for title in retrieved_titles:
             print(f"Retrieved: {title}")
         print(f"Top K: {top_k}")
+
+
+recallk = passed_tests / tests_ran * 100
+average_rank = total_rank / passed_tests
+average_rank = total_rank / passed_tests if passed_tests else 0
+average_latency = total_latency_ms / tests_ran
+mrr = total_reciprocal_rank / tests_ran
             
 print("-------------------------------------")
 
 print(f"Tests Ran: {tests_ran}")
 print(f"Passed: {passed_tests}")
 print(f"Failed: {failed_tests}")
-recallk = passed_tests / tests_ran * 100
-average_rank = total_rank / passed_tests
-print(f"Recall@{top_k}: {recallk}%")
-average_rank = total_rank / passed_tests if passed_tests else 0
-average_latency = total_latency_ms / tests_ran
 print(f"Average Retreival Latency: {average_latency}")
 print(f"Recall@K: {recallk:.2f}%")
 print(f"Average Found Rank: {average_rank:.2f}")
+print(f"MRR is: {mrr:.2f}")
+
+summary = {
+    "tests_ran": tests_ran,
+    "passed": passed_tests,
+    "failed": failed_tests,
+    "hit_rate_at_k": recallk,
+    "mrr": mrr,
+    "average_found_rank": average_rank,
+    "average_latency_ms": average_latency,
+}
+
+current_time = datetime.now()
+
+timestamp = current_time.strftime("%Y%m%d_%H%M%S")
+
+evaluation_run = {
+    "summary": summary,
+    "results": query_records,
+    "timestamp": timestamp
+}
+
+target_dir = Path("eval_results")
+file_path = target_dir / f"evaluation_results_{timestamp}.json"
+
+target_dir.mkdir(parents=True, exist_ok=True)
+
+with open(file_path, "w", encoding="utf-8") as file:
+    json.dump(evaluation_run, file, indent=4)
