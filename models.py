@@ -21,6 +21,15 @@ class Chunk:
     heading: str
     text: str
 
+
+@dataclass
+class NoteLink:
+    source_path: str
+    target_name: str
+    target_path: str | None = None
+    link_text: str | None = None
+    link_type: str = "wikilink"
+
 @dataclass
 class SearchResult:
     title: str
