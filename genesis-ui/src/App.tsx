@@ -104,8 +104,10 @@ function App() {
 
     async function handleAsk() {
       setStatus("Sending...")
+      setResponse("")
+      setSources([])
       try {
-        const apiResponse = await fetch("http://127.0.0.1:8000/ask", {
+        const apiResponse = await fetch("http://127.0.0.1:8000/ask-stream", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -119,10 +121,49 @@ function App() {
           throw new Error("Request failed")
         }
 
-        const data = await apiResponse.json()
-        setResponse(data.answer)
-        setSources(data.sources)
-        setStatus("Complete")        
+        if (!apiResponse.body) {
+          throw new Error("No response body")
+        }
+
+        const reader = apiResponse.body.getReader()
+        const decoder = new TextDecoder()
+
+        let buffer = ""
+
+        while (true) {
+          const { value, done } = await reader.read()
+
+          if (done) {
+            break
+          }
+
+          buffer += decoder.decode(value, { stream: true })
+
+          const lines = buffer.split("\n")
+          buffer = lines.pop() || ""
+
+          for (const line of lines) {
+            if (!line.trim()) {
+              continue
+            }
+
+            const event = JSON.parse(line)
+
+            if (event.type === "sources") {
+              setSources(event.sources)
+            }
+
+            if (event.type === "token") {
+              setResponse((previous) => previous + event.text)
+            }
+
+            if (event.type === "done") {
+              setStatus("Complete")
+            }
+          }
+        }
+
+        setStatus("Complete")      
       } catch (error) {
         setResponse("Genesis could not reach the backend. Make sure the API server is running.")
         setSources([])

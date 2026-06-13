@@ -2,7 +2,7 @@ from vault_reader import read_vault
 from chunker import chunk_notes
 from vector_store import get_collection, add_chunk, delete_note_vectors
 from embedder import embed_chunk
-from llm_client import send_prompt
+from llm_client import send_prompt, stream_prompt
 from context_builder import build_prompt
 from search_service import hybrid_search
 from config import settings
@@ -102,14 +102,13 @@ def ask_vault_ai():
     try:
         timer = PerformanceTimer()
         with timer.stage("llm_response"):
-            llm_answer = send_prompt(final_prompt)
+            llm_answer = stream_prompt(final_prompt)
 
         timer.finish()
         print(timer.get_timings())
     except Exception as e:
         print(f"Sources found, but local LLM failed: {e}")
         return
-    print(llm_answer)
 
 def ask_vault():
     user_question = input("What would you like to search for? ")
