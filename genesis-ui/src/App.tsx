@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { GalaxyCanvas } from "./galaxy/GalaxyCanvas";
+import type { NoteGraph } from "./galaxy/galaxyTypes";
 import "./App.css"
 
 type SearchBoxProps = {
@@ -21,20 +23,6 @@ type Source = {
   heading: string
   preview: string
   signals: string[]
-}
-
-type GraphLink = {
-  source_path: string
-  target_name: string
-  target_path: string
-  link_text: string
-  link_type: string
-}
-
-type NoteGraph = {
-  note_path: string
-  outgoing: GraphLink[]
-  backlinks: GraphLink[]
 }
 
 type GraphExplorerProps = {
@@ -62,17 +50,6 @@ type ActiveTab = "ask" | "graph"
 type TabBarProps = {
   activeTab: ActiveTab
   setActiveTab: (value: ActiveTab) => void
-}
-
-type GraphCanvasProps = {
-  graphData: NoteGraph | null
-}
-
-type PositionedNode = {
-  label: string
-  type: string
-  x: number
-  y: number
 }
 
 function GenesisHeader() {
@@ -150,152 +127,6 @@ function SourceCard(props: SourceCardProps) {
   )
 }
 
-function getNoteName(path: string) {
-  const noteName = path
-    .split("\\")
-    .pop()
-  if (noteName)
-    return noteName.replace(".md", "")
-  return ""
-}
-
-function dedupeLinks(links: GraphLink[], getKey: (link:GraphLink) => string) {
-  const seen = new Set<string>()
-
-  return links.filter((link) => {
-    const key = getKey(link)
-
-    if (seen.has(key)) {
-      return false
-    }
-    seen.add(key)
-    return true
-  })
-}
-
-function layoutAlgorithm(graphData: NoteGraph) {
-  const currentNode = graphData.note_path
-  const outgoingLinks = dedupeLinks(
-    graphData.outgoing,
-    (link) => link.target_path || link.target_name
-  )
-  const backlinkLinks = dedupeLinks(
-    graphData.backlinks,
-    (link) => link.source_path
-  )
-
-  const nodes: PositionedNode[] = [
-    
-  ]
-
-  const centerX = 50
-  const centerY = 50
-  const radius = 35
-
-  const centerNode: PositionedNode = {
-    label: getNoteName(currentNode),
-    type: "center",
-    x: centerX,
-    y: centerY
-  }
-  nodes.push(centerNode)
-
-  for (let index = 0; index < outgoingLinks.length; index++){
-    const outgoing_link = outgoingLinks[index]
-
-    let angleDegrees: number
-
-    if (outgoingLinks.length === 1) {angleDegrees = 0}
-    else{
-      const arcSize = 45 - (-45)
-      const angleStep = arcSize / (outgoingLinks.length -1)
-      angleDegrees = -45 + (index * angleStep)
-    }
-    const angleRadians = angleDegrees * (Math.PI / 180)
-
-    const x = centerX + Math.cos(angleRadians) * radius
-    const y = centerY + Math.sin(angleRadians) * radius
-
-    let label: string
-
-    if (outgoing_link.target_path) {label = getNoteName(outgoing_link.target_path)}
-    else{
-      label = outgoing_link.target_name
-    }
-
-    const outgoinglinkNode: PositionedNode = {
-      label,
-      type: "outgoing",
-      x,
-      y
-    }
-    nodes.push(outgoinglinkNode)
-  }
-
-  const startAngle = 135
-  const endAngle = 225
-
-  for (let index = 0; index < backlinkLinks.length; index++){
-    const link = backlinkLinks[index]
-
-    let angleDegrees: number
-    if (backlinkLinks.length === 1) {angleDegrees = 180} 
-    else {
-      const arcSize = endAngle - startAngle
-      const angleStep = arcSize / (backlinkLinks.length - 1)
-      angleDegrees = startAngle + (index * angleStep)
-    }
-    const angleRadians = angleDegrees * (Math.PI / 180)
-
-    const x = centerX + Math.cos(angleRadians) * radius
-    const y = centerY + Math.sin(angleRadians) * radius
-  
-    const backlinkNode: PositionedNode = {
-      label: getNoteName(link.source_path),
-      type: "backlink",
-      x,
-      y
-    }
-    nodes.push(backlinkNode)
-  }
-
-  return nodes
-
-}
-
-function GraphCanvas(props: GraphCanvasProps ) {
-  if (!props.graphData) {
-    return null
-  }
-
-  const positionedNodes = layoutAlgorithm(props.graphData)
-
-  const renderedNodes = positionedNodes.map((node, index) =>  {
-    let className = ""
-    if (node.type === "center") {
-      className ="graph-node center-node"
-    }
-    if (node.type === "outgoing") {
-      className ="graph-node outgoing-node"
-    }
-    if (node.type === "backlink") {
-      className ="graph-node backlink-node"
-    }
-    return (
-      <div className={className} style={{left: `${node.x}%`, top: `${node.y}%`}} key={node.type + node.label + index}> {node.label}
-      </div>
-    )
-  })
-
-  return (
-    <div className="graph-space">
-
-      {renderedNodes}
-
-    </div>
-  )
-}
-
 function GraphExplorer(props: GraphExplorerProps) {
   return (
     <>
@@ -315,7 +146,7 @@ function GraphExplorer(props: GraphExplorerProps) {
       <p>Status: {props.graphStatus}</p>
       <p>Outgoing: {props.graphData ? props.graphData.outgoing.length : 0}</p>
       <p>Backlinks: {props.graphData ? props.graphData.backlinks.length : 0}</p>
-      <GraphCanvas graphData={props.graphData} />
+      <GalaxyCanvas graphData={props.graphData} />
     </>
   )
 }
@@ -480,7 +311,7 @@ function App() {
 
           {activeTab === "graph" && (
             <section className="graph-section">
-              <section className="response-section scroll-panel">
+              <section className="graph=panel">
                 <GraphExplorer
                   selectedNotePath={selectedNotePath}
                   setSelectedNotePath={setNodePath}
