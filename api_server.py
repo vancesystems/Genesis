@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from search_service import hybrid_search
 from context_builder import build_prompt
 from llm_client import send_prompt, stream_prompt_chunks
+from graph_service import get_note_graph
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 import json
@@ -104,3 +105,9 @@ def stream_genesis(request: StreamRequest):
         }) + "\n"
 
     return StreamingResponse(event_generator(), media_type="application/x-ndjson")
+
+@app.get("/graph")
+def get_link_for_note(note_path):
+    results = get_note_graph(note_path)
+
+    return results

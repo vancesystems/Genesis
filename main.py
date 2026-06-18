@@ -8,6 +8,7 @@ from search_service import hybrid_search
 from config import settings
 from notes_db import *
 from performance_eval import PerformanceTimer
+from graph_builder import build_note_links
 
 def index_vault():
     create_tables()
@@ -31,6 +32,7 @@ def index_vault():
         delete_fts_for_note(path)
         delete_note_vectors(collection, path)
         delete_note_by_path(path)
+        delete_links_for_note(path)
 
     for note in notes:
         old_note = get_note_by_path(note.path)
@@ -56,6 +58,13 @@ def index_vault():
                 print(f"Indexing chunk {index + 1}/{len(chunked_note)}: {chunk.note_title}")
                 embedded_chunk = embed_chunk(chunk)
                 add_chunk(collection, chunk, embedded_chunk)
+
+    for note in notes:
+        delete_links_for_note(note.path)
+        note_links = build_note_links(note)
+
+        for link in note_links:
+            save_note_link(link)
 
     print(f"Index complete:")
     print(f"Reindexed: {reindexed_count} note(s)")

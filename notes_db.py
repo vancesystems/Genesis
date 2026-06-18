@@ -1,5 +1,5 @@
 import sqlite3
-from models import Chunk
+from models import Chunk, NoteLink
 
 def get_connection():
     conn = sqlite3.connect("obsidian_notes.db")
@@ -45,6 +45,17 @@ def create_tables():
         )
         """)
     
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS note_links (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            source_path TEXT NOT NULL,
+            target_name TEXT NOT NULL,
+            target_path TEXT,
+            link_text TEXT,
+            link_type TEXT
+        )
+    """)
+    
     conn.commit()
 
     conn.close()
@@ -74,6 +85,29 @@ def save_chunk(chunk):
         "REPLACE INTO chunk_table VALUES (?,?,?,?,?,?,?)",
         (chunk.chunk_id, chunk.note_title, chunk.note_path, chunk.section_index, chunk.chunk_index, chunk.heading, chunk.text)
     )
+
+    conn.commit()
+
+    conn.close()
+
+def save_note_link(link):
+    conn = get_connection()
+
+    c = conn.cursor()
+
+    c.execute(
+            """
+            INSERT INTO note_links (
+                source_path,
+                target_name,
+                target_path,
+                link_text,
+                link_type
+            )
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (link.source_path, link.target_name, link.target_path, link.link_text, link.link_type)
+        )
 
     conn.commit()
 
@@ -121,6 +155,20 @@ def get_note_by_path(path):
 
     return result
 
+def get_note_by_title(title):
+    conn = get_connection()
+    c = conn.cursor()
+
+    c.execute(
+        "SELECT * FROM notes_table WHERE title = ?",
+        (title,)
+    )
+
+    result = c.fetchone()
+
+    conn.close()
+    return result
+
 def get_chunks_for_note(note_path):
     conn = get_connection()
 
@@ -136,6 +184,19 @@ def get_chunks_for_note(note_path):
 
     return results
 
+def get_all_note_links():
+    conn = get_connection()
+
+    c = conn.cursor()
+
+    c.execute("SELECT * FROM note_links")
+
+    results = c.fetchall()
+
+    conn.close()
+
+    return results
+
 def delete_chunks_for_note(note_path):
     conn = get_connection()
 
@@ -144,6 +205,19 @@ def delete_chunks_for_note(note_path):
     c.execute("DELETE FROM chunk_table WHERE note_path = ?",
               (note_path,)
               )
+    conn.commit()
+
+    conn.close()
+
+def delete_links_for_note(source_path):
+    conn = get_connection()
+
+    c = conn.cursor()
+
+    c.execute("DELETE FROM note_links WHERE source_path = ?",
+              (source_path,)
+            )
+    
     conn.commit()
 
     conn.close()
@@ -190,6 +264,35 @@ def get_all_note_paths():
     conn.close()
 
     return vault_paths
+
+def get_outgoing_links(source_path):
+    conn = get_connection()
+
+    c = conn.cursor()
+
+    c.execute("SELECT * FROM note_links WHERE source_path = ?",
+              (source_path, ))
+
+    result = c.fetchall()
+
+    conn.close()
+
+    return result
+
+def get_backlinks(target_path):
+    conn = get_connection()
+
+    c = conn.cursor()
+
+    c.execute("SELECT * FROM note_links WHERE target_path = ?",
+              (target_path, ))
+
+    result = c.fetchall()
+
+    conn.close()
+
+    return result
+
 
 def get_all_chunks():
     conn = get_connection()

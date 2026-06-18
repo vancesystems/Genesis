@@ -89,6 +89,7 @@ body {
 .response-section {
   text-align: left;
   line-height: 1.65;
+  padding-top: 0px;
   font-size: 18px;
 }
 
@@ -112,6 +113,7 @@ body {
 
 .sources-section {
   margin-top: 25px;
+  padding-top: 0px;
   background: rgba(3, 7, 18, 0.78);
   border: 1px solid rgba(79, 140, 255, 0.45);
   border-radius: 18px;
@@ -175,4 +177,38 @@ body {
   display: grid;
   grid-template-columns: 1.5fr 1fr;
   gap: 24px;
+}
+
+.graph-space {
+  position: relative;
+  height: 600px;
+  margin-top: 24px;
+}
+
+.graph-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+
+  border: 1px solid rgba(125, 211, 252, 0.65);
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: rgba(8, 15, 40, 0.9);
+  color: #eef4ff;
+  font-size: 14px;
+  text-align: center;
+  box-shadow: 0 0 14px rgba(59, 130, 246, 0.18);
+}
+
+.center-node {
+  border-color: rgba(56, 189, 248, 1);
+  font-weight: 800;
+  box-shadow: 0 0 26px rgba(56, 189, 248, 0.45);
+}
+
+.outgoing-node {
+  border-color: rgba(96, 165, 250, 0.75);
+}
+
+.backlink-node {
+  border-color: rgba(168, 85, 247, 0.75);
 }
