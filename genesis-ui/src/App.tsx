@@ -311,7 +311,7 @@ function App() {
 
           {activeTab === "graph" && (
             <section className="graph-section">
-              <section className="graph=panel">
+              <section className="graph-panel">
                 <GraphExplorer
                   selectedNotePath={selectedNotePath}
                   setSelectedNotePath={setNodePath}
