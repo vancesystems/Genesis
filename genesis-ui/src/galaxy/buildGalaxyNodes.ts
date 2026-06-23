@@ -23,12 +23,19 @@ export function buildGalaxyNodes(graphData: NoteGraph): GalaxyNode[] {
 
     if (graphData.outgoing.length > 0) {
         for (let index = 0; index < graphData.outgoing.length; index++) {
+            const orbitRadius = 10
+            const angleStep = (Math.PI * 2) / graphData.outgoing.length
+            const angle = index * angleStep
+
+            const x = Math.cos(angle) * orbitRadius
+            const y = 0
+            const z = Math.sin(angle) * orbitRadius 
             const outgoingNode: GalaxyNode = {
                 id: graphData.outgoing[index].target_name,
                 path: graphData.outgoing[index].target_path,
                 label: graphData.outgoing[index].target_name,
                 kind: "outgoing",
-                position: [3 + index, 0, 0],
+                position: [x, y, z],
                 size: 1,
             }
             nodeArray.push(outgoingNode)
@@ -36,12 +43,19 @@ export function buildGalaxyNodes(graphData: NoteGraph): GalaxyNode[] {
 
     if (graphData.backlinks.length > 0) {
         for (let index = 0; index < graphData.backlinks.length; index++) {
+            const orbitRadius = 5
+            const angleStep = (Math.PI * 2) / graphData.backlinks.length
+            const angle = index * angleStep
+
+            const x = Math.cos(angle) * orbitRadius
+            const y = 0.8
+            const z = Math.sin(angle) * orbitRadius
             const backlinkNode: GalaxyNode = {
                 id: graphData.backlinks[index].source_path,
                 path: graphData.backlinks[index].source_path,
                 label: getNoteName(graphData.backlinks[index].source_path),
                 kind: "backlink",
-                position: [-3 - index, 0, 0],
+                position: [x, y, z],
                 size: 1,
             }
             nodeArray.push(backlinkNode)
