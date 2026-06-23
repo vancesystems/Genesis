@@ -19,6 +19,8 @@ export function GalaxyCanvas(props: GalaxyCanvasProps) {
         }}
         dpr={[1, 2]}
       >
+        <ambientLight intensity={0.45} />
+        <pointLight position={[8, 8, 8]} intensity={2} />
         <color attach="background" args={["#02030a"]} />
 
         <GalaxyScene graphData={props.graphData} />
