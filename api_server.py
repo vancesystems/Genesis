@@ -1,10 +1,10 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from search_service import hybrid_search
 from context_builder import build_prompt
 from llm_client import send_prompt, stream_prompt_chunks
-from graph_service import get_note_graph
-from fastapi.middleware.cors import CORSMiddleware
+from graph_service import get_note_graph, get_global_graph_results
 from fastapi.responses import StreamingResponse
 import json
 
@@ -109,5 +109,11 @@ def stream_genesis(request: StreamRequest):
 @app.get("/graph")
 def get_link_for_note(note_path):
     results = get_note_graph(note_path)
+
+    return results
+
+@app.get("/graph/global")
+def get_global_graph():
+    results = get_global_graph_results()
 
     return results

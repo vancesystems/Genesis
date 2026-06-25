@@ -1,4 +1,5 @@
-import type { GalaxyNode, NoteGraph } from "./galaxyTypes"
+import type { GalaxyNode, GlobalGraph, NoteGraph } from "./galaxyTypes"
+import { stableNoise} from "./galaxyNoise"
 
 const BACKLINK_BASE_RADIUS = 5
 const BACKLINK_RADIUS_VARIATION = 1
@@ -9,6 +10,15 @@ const OUTGOING_RADIUS_VARIATION = 2
 const BACKLINK_BASE_Y = 0.8
 const OUTGOING_BASE_Y = -0.4
 
+const GLOBAL_GRAPH_RADIUS = 80
+const GLOBAL_GRAPH_THICKNESS = 5
+
+const GLOBAL_SPIRAL_ARMS = 8
+const GLOBAL_SPIRAL_TURNS = 1.6
+
+const GLOBAL_ARM_JITTER = 0.55
+const GLOBAL_RADIAL_JITTER = 3
+
 function getNoteName(path: string) {
     const noteName = path.split(/[\\/]/).pop()
 
@@ -17,18 +27,78 @@ function getNoteName(path: string) {
     return noteName.replace(/\.md$/i, "")
 }
 
-function stableHash(value: string) {
-    let hash = 2166136261
+export function buildGlobalGalaxyNodes(
+    globalData: GlobalGraph
+): GalaxyNode[] {
+    const nodeArray: GalaxyNode[] = []
 
-    for (let index = 0; index < value.length; index ++) {
-        hash ^= value.charCodeAt(index)
-        hash = Math.imul(hash, 16777619)
+    for (const note of globalData.nodes) {
+        const radiusNoise = stableNoise(`radius:${note.path}`)
+        const armNoise = stableNoise(`arm:${note.path}`)
+        const angleNoise = stableNoise(`angle:${note.path}`)
+        const radialJitterNoise = stableNoise(`radial-jitter:${note.path}`)
+        const heightNoise = stableNoise(`height:${note.path}`)
+
+        const radiusRatio = Math.pow(radiusNoise, 1.15)
+
+        const baseRadius = radiusRatio * GLOBAL_GRAPH_RADIUS
+
+        const armIndex = Math.floor(
+            armNoise * GLOBAL_SPIRAL_ARMS
+        )
+
+        const armOffset =
+            (armIndex / GLOBAL_SPIRAL_ARMS) *
+            Math.PI *
+            2
+
+        const spiralAngle =
+            armOffset +
+            radiusRatio *
+            GLOBAL_SPIRAL_TURNS *
+            Math.PI *
+            2
+
+        const angleJitter =
+            (angleNoise - 0.5) *
+            GLOBAL_ARM_JITTER
+
+        const radialJitter =
+            (radialJitterNoise - 0.5) *
+            GLOBAL_RADIAL_JITTER *
+            2
+
+        const angle = spiralAngle + angleJitter
+        const radius = Math.max(
+            0,
+            baseRadius + radialJitter
+        )
+
+        const x = Math.cos(angle) * radius
+        const z = Math.sin(angle) * radius
+
+        const localThickness =
+            GLOBAL_GRAPH_THICKNESS *
+            (0.25 + (1 - radiusRatio) * 0.75)
+
+        const y =
+            (heightNoise - 0.5) *
+            localThickness *
+            2
+
+        const globalNode: GalaxyNode = {
+            id: note.id,
+            path: note.path,
+            label: note.label,
+            kind: "global",
+            position: [x, y, z],
+            size: 0.3,
+        }
+
+        nodeArray.push(globalNode)
     }
-    return hash >>> 0
-}
 
-function stableNoise(value: string) {
-    return stableHash(value) / 4294967295
+    return nodeArray
 }
 
 export function buildGalaxyNodes(graphData: NoteGraph): GalaxyNode[] {

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { GalaxyCanvas } from "./galaxy/GalaxyCanvas";
 import type { NoteGraph } from "./galaxy/galaxyTypes";
+import type { GlobalGraph } from "./galaxy/galaxyTypes";
 import "./App.css"
 
 type SearchBoxProps = {
@@ -29,8 +30,10 @@ type GraphExplorerProps = {
   selectedNotePath: string
   setSelectedNotePath: (value: string) => void
   handlePath: () => void
+  loadGlobalGraph: () => void
   graphStatus: string
   graphData: NoteGraph | null
+  globalData: GlobalGraph | null
 }
 
 type DisplaySourcesProps = {
@@ -143,10 +146,17 @@ function GraphExplorer(props: GraphExplorerProps) {
       >
         Load Graph
       </button>
+      <button
+        onClick={() => {
+          props.loadGlobalGraph()
+        }}
+      >
+        Load Global Graph
+      </button>
       <p>Status: {props.graphStatus}</p>
       <p>Outgoing: {props.graphData ? props.graphData.outgoing.length : 0}</p>
       <p>Backlinks: {props.graphData ? props.graphData.backlinks.length : 0}</p>
-      <GalaxyCanvas graphData={props.graphData} />
+      <GalaxyCanvas graphData={props.graphData} globalData={props.globalData} />
     </>
   )
 }
@@ -179,6 +189,7 @@ function App() {
     const [status, setStatus] = useState("Idle");
     const [response, setResponse] = useState("")
     const [graphData, setGraphData] = useState<NoteGraph | null>(null)
+    const [globalData, setGlobalData] = useState<GlobalGraph | null>(null)
     const [selectedNotePath, setNodePath] = useState("")
     const [graphStatus, setGraphStatus] = useState("Idle")
     const [sources, setSources] = useState<Source[]>([])
@@ -254,7 +265,30 @@ function App() {
       }
     }
 
+    async function loadGlobalGraph() {
+      setGraphData(null)
+      setGraphStatus("Sending...")
+
+      try {
+        const graphResponse = await fetch(
+          `http://127.0.0.1:8000/graph/global`
+        )
+
+        if (!graphResponse.ok) {
+          throw new Error("Request failed")
+        }
+
+        const data = await graphResponse.json()
+        setGlobalData(data)
+        setGraphStatus("Complete")
+      } catch (error) {
+        setGlobalData(null)
+        setGraphStatus("Failed")
+      }
+    }
+
     async function loadGraphForPath(notePath: string) {
+      setGlobalData(null)
       setGraphStatus("Sending...")
       setNodePath(notePath)
 
@@ -316,8 +350,10 @@ function App() {
                   selectedNotePath={selectedNotePath}
                   setSelectedNotePath={setNodePath}
                   handlePath={handlePath}
+                  loadGlobalGraph={loadGlobalGraph}
                   graphStatus={graphStatus}
                   graphData={graphData}
+                  globalData={globalData}
                 />
               </section>
             </section>
