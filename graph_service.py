@@ -30,7 +30,15 @@ def get_note_graph(note_path):
 def get_global_graph_results():
     all_notes = get_all_notes()
     results = [row_to_node(row) for row in all_notes]
+    links = []
+    for note in all_notes:
+        outgoing = get_outgoing_links(note["path"])
+        for row in outgoing:
+            if row["target_path"] is None:
+                continue
+            links.extend(row_to_link(row) for row in outgoing)
 
     return {
-        "nodes": results
+        "nodes": results,
+        "links": links
     }

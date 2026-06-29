@@ -27,10 +27,39 @@ function getNoteName(path: string) {
     return noteName.replace(/\.md$/i, "")
 }
 
+function classifyBodyType(mass: number) {
+    if (mass < 200) {
+        return "asteroid"
+    }
+    else if (mass < 500) {
+        return "dwarf"
+    }
+    else if (mass < 1500) {
+        return "planet"
+    }
+    else if (mass < 2000) {
+        return "gasGiant"
+    }
+    else{
+        return "star"
+    }
+}
+
 export function buildGlobalGalaxyNodes(
     globalData: GlobalGraph
 ): GalaxyNode[] {
     const nodeArray: GalaxyNode[] = []
+
+    const backlinksCount = new Map<string, number>()
+    const outgoinglinksCount = new Map<string, number>()
+
+    for (const link of globalData.links) {
+        const currentBacklinks = backlinksCount.get(link.target_path) ?? 0
+        const currentOutgoing = outgoinglinksCount.get(link.source_path) ?? 0
+        backlinksCount.set(link.target_path, currentBacklinks +1)
+        outgoinglinksCount.set(link.source_path, currentOutgoing +1)
+    }
+
 
     for (const note of globalData.nodes) {
         const radiusNoise = stableNoise(`radius:${note.path}`)
@@ -86,13 +115,18 @@ export function buildGlobalGalaxyNodes(
             localThickness *
             2
 
+        const backlinks = backlinksCount.get(note.path) ?? 0
+        const outgoing = outgoinglinksCount.get(note.path) ?? 0
+        const mass = backlinks + outgoing * 0.35
+
         const globalNode: GalaxyNode = {
             id: note.id,
             path: note.path,
             label: note.label,
             kind: "global",
+            bodyType: classifyBodyType(mass),
             position: [x, y, z],
-            size: 0.3,
+            mass: mass,
         }
 
         nodeArray.push(globalNode)
@@ -107,9 +141,10 @@ export function buildGalaxyNodes(graphData: NoteGraph): GalaxyNode[] {
         id: graphData.note_path,
         path: graphData.note_path,
         label: getNoteName(graphData.note_path),
+        bodyType: classifyBodyType(1),
         kind: "center",
         position: [0, 0, 0],
-        size: 1,
+        mass: 1,
         
     }
     nodeArray.push(centerNode)
@@ -131,9 +166,10 @@ export function buildGalaxyNodes(graphData: NoteGraph): GalaxyNode[] {
                 id: graphData.outgoing[index].target_name,
                 path: graphData.outgoing[index].target_path,
                 label: graphData.outgoing[index].target_name,
+                bodyType: classifyBodyType(1),
                 kind: "outgoing",
                 position: [x, y, z],
-                size: 1,
+                mass: 1,
             }
             nodeArray.push(outgoingNode)
     }}
@@ -157,8 +193,9 @@ export function buildGalaxyNodes(graphData: NoteGraph): GalaxyNode[] {
                 path: graphData.backlinks[index].source_path,
                 label: getNoteName(graphData.backlinks[index].source_path),
                 kind: "backlink",
+                bodyType: classifyBodyType(1),
                 position: [x, y, z],
-                size: 1,
+                mass: 1,
             }
             nodeArray.push(backlinkNode)
     }}

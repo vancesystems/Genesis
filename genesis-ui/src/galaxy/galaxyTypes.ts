@@ -1,4 +1,10 @@
 export type GalaxyNodeKind = "center" | "outgoing" | "backlink" | "global"
+type BodyType =
+    | "asteroid"
+    | "dwarf"
+    | "planet"
+    | "gasGiant"
+    | "star"
 
 export type Position3D = [number, number, number]
 
@@ -7,8 +13,9 @@ export type GalaxyNode = {
     path: string
     label: string
     kind: GalaxyNodeKind
+    bodyType: BodyType
     position: Position3D
-    size: number
+    mass: number
 }
 
 export type GraphLink = {
@@ -33,4 +40,5 @@ export type GlobalGraphNode = {
 
 export type GlobalGraph = {
     nodes: GlobalGraphNode[]
+    links: GraphLink[]
 }

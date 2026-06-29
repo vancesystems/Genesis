@@ -280,6 +280,7 @@ function App() {
 
         const data = await graphResponse.json()
         setGlobalData(data)
+        console.log(data)
         setGraphStatus("Complete")
       } catch (error) {
         setGlobalData(null)
