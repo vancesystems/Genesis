@@ -11,7 +11,127 @@ import {
   DoubleSide,
   SRGBColorSpace,
 } from "three"
-import type { Group } from "three"
+import * as THREE from 'three'
+import type { Group } from 'three'
+
+const AXIAL_TILT: [number, number, number] = [0, 0, THREE.MathUtils.degToRad(11)]
+const OCEAN_SPHERE_GEOMETRY =
+  new THREE.SphereGeometry(1, 20, 20)
+
+let sharedOceanCloudTexture:
+  THREE.CanvasTexture | null = null
+
+function getSharedOceanCloudTexture() {
+  if (sharedOceanCloudTexture) {
+    return sharedOceanCloudTexture
+  }
+
+  const canvas = document.createElement("canvas")
+
+  canvas.width = 128
+  canvas.height = 64
+
+  const context = canvas.getContext("2d")
+
+  if (!context) {
+    throw new Error("Could not create shared cloud texture")
+  }
+
+  context.clearRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  )
+
+  context.filter = "blur(2px)"
+
+  for (let index = 0; index < 55; index++) {
+    const xNoise = stableNoise(
+      `shared-ocean-cloud-x:${index}`
+    )
+
+    const yNoise = stableNoise(
+      `shared-ocean-cloud-y:${index}`
+    )
+
+    const widthNoise = stableNoise(
+      `shared-ocean-cloud-width:${index}`
+    )
+
+    const heightNoise = stableNoise(
+      `shared-ocean-cloud-height:${index}`
+    )
+
+    const opacityNoise = stableNoise(
+      `shared-ocean-cloud-opacity:${index}`
+    )
+
+    const x = xNoise * canvas.width
+    const y = yNoise * canvas.height
+
+    const radiusX = 4 + widthNoise * 14
+    const radiusY = 1.5 + heightNoise * 4
+
+    const opacity =
+      0.2 + opacityNoise * 0.45
+
+    const gradient =
+      context.createRadialGradient(
+        x,
+        y,
+        0,
+        x,
+        y,
+        radiusX
+      )
+
+    gradient.addColorStop(
+      0,
+      `rgba(255, 255, 255, ${opacity})`
+    )
+
+    gradient.addColorStop(
+      0.55,
+      `rgba(235, 247, 255, ${opacity * 0.45})`
+    )
+
+    gradient.addColorStop(
+      1,
+      "rgba(255, 255, 255, 0)"
+    )
+
+    context.fillStyle = gradient
+
+    context.beginPath()
+
+    context.ellipse(
+      x,
+      y,
+      radiusX,
+      radiusY,
+      0,
+      0,
+      Math.PI * 2
+    )
+
+    context.fill()
+  }
+
+  context.filter = "none"
+
+  const texture = new THREE.CanvasTexture(canvas)
+
+  texture.colorSpace = THREE.SRGBColorSpace
+  texture.wrapS = THREE.RepeatWrapping
+  texture.generateMipmaps = false
+  texture.minFilter = THREE.LinearFilter
+  texture.needsUpdate = true
+
+  sharedOceanCloudTexture = texture
+
+  return texture
+}
 
 type GalaxySceneProps = {
   graphData: NoteGraph | null
@@ -104,32 +224,137 @@ function getPlanetVisuals(node: GalaxyNode) {
   }
 }
 
+function OceanPlanet({ node }: PlanetNodeProps) {
+  const visualSize = Math.min(
+    2,
+    1.15 + Math.sqrt(node.mass) * 0.02
+  )
+
+  const colorNoise = stableNoise(
+    `${node.path}:ocean-color`
+  )
+
+  const rotationNoise = stableNoise(
+    `${node.path}:ocean-rotation`
+  )
+
+  const cloudRotationNoise = stableNoise(
+    `${node.path}:cloud-rotation`
+  )
+
+  const cloudTexture = useMemo(
+    () => getSharedOceanCloudTexture(),
+    []
+  )
+
+  const oceanColor = useMemo(() => {
+    return new THREE.Color().setHSL(
+      0.54 + colorNoise * 0.045,
+      0.76,
+      0.28
+    )
+  }, [colorNoise])
+
+  const shallowColor = useMemo(() => {
+    return new THREE.Color().setHSL(
+      0.5 + colorNoise * 0.035,
+      0.85,
+      0.65
+    )
+  }, [colorNoise])
+
+  const atmosphereColor = useMemo(() => {
+    return new THREE.Color().setHSL(
+      0.53 + colorNoise * 0.04,
+      0.95,
+      0.68
+    )
+  }, [colorNoise])
+
+  return (
+    <group position={node.position}>
+      <group
+        scale={visualSize}
+        rotation={[
+          AXIAL_TILT[0],
+          rotationNoise * Math.PI * 2,
+          AXIAL_TILT[2],
+        ]}
+      >
+        <mesh geometry={OCEAN_SPHERE_GEOMETRY}>
+          <meshPhongMaterial
+            color={oceanColor}
+            emissive="#011426"
+            emissiveIntensity={0.2}
+            specular={shallowColor}
+            shininess={90}
+          />
+        </mesh>
+
+        <mesh
+          geometry={OCEAN_SPHERE_GEOMETRY}
+          scale={1.018}
+          rotation={[
+            0.08,
+            cloudRotationNoise * Math.PI * 2,
+            -0.04,
+          ]}
+        >
+          <meshLambertMaterial
+            map={cloudTexture}
+            color="#ffffff"
+            transparent
+            opacity={0.62}
+            alphaTest={0.04}
+            depthWrite={false}
+          />
+        </mesh>
+
+        <mesh
+          geometry={OCEAN_SPHERE_GEOMETRY}
+          scale={1.085}
+        >
+          <meshBasicMaterial
+            color={atmosphereColor}
+            transparent
+            opacity={0.18}
+            side={BackSide}
+            blending={AdditiveBlending}
+            depthWrite={false}
+            toneMapped={false}
+          />
+        </mesh>
+
+        <mesh
+          geometry={OCEAN_SPHERE_GEOMETRY}
+          scale={1.14}
+        >
+          <meshBasicMaterial
+            color={atmosphereColor}
+            transparent
+            opacity={0.045}
+            side={BackSide}
+            blending={AdditiveBlending}
+            depthWrite={false}
+            toneMapped={false}
+          />
+        </mesh>
+      </group>
+    </group>
+  )
+}
+
 function StarNode({ node }: PlanetNodeProps) {
   const bodyRef = useRef<Group | null>(null)
   const innerGlowRef = useRef<Group | null>(null)
   const coronaRef = useRef<Group | null>(null)
   const elapsedTimeRef = useRef(0)
 
-  /*
-   * Converts the note's graph mass into a controlled render size.
-   *
-   * Math.log1p compresses large values so a mass of 100 does not
-   * create a star ten times larger than a mass of 10.
-   *
-   * Math.min prevents extremely connected notes from becoming
-   * absurdly large.
-   */
   const visualSize = Math.min(
-    2.6,
-    0.9 + Math.log1p(node.mass) * 0.22
+    8,
+    2.4 + Math.sqrt(node.mass) * 0.08
   )
 
-  /*
-   * Generate a procedural star-surface texture.
-   *
-   * useMemo means React creates this texture once for this node
-   * instead of rebuilding the canvas every rendered frame.
-   */
   const surfaceTexture = useMemo(() => {
     const canvas = document.createElement("canvas")
 
@@ -142,12 +367,6 @@ function StarNode({ node }: PlanetNodeProps) {
       throw new Error("Could not create star surface texture")
     }
 
-    /*
-     * Base colour of the star.
-     *
-     * This gradient creates a slightly brighter equator and darker
-     * polar regions instead of one completely flat colour.
-     */
     const baseGradient = context.createLinearGradient(
       0,
       0,
@@ -164,13 +383,6 @@ function StarNode({ node }: PlanetNodeProps) {
     context.fillStyle = baseGradient
     context.fillRect(0, 0, canvas.width, canvas.height)
 
-    /*
-     * Draw bright plasma cells.
-     *
-     * stableNoise gives every star a repeatable appearance based
-     * on its note path. Reloading the graph will not completely
-     * redesign the star.
-     */
     context.globalCompositeOperation = "screen"
 
     for (let index = 0; index < 140; index++) {
@@ -224,12 +436,6 @@ function StarNode({ node }: PlanetNodeProps) {
       context.fill()
     }
 
-    /*
-     * Draw darker plasma regions.
-     *
-     * Multiply darkens the existing colours instead of painting
-     * opaque black spots over them.
-     */
     context.globalCompositeOperation = "multiply"
 
     for (let index = 0; index < 90; index++) {
@@ -277,10 +483,6 @@ function StarNode({ node }: PlanetNodeProps) {
       context.arc(x, y, radius, 0, Math.PI * 2)
       context.fill()
     }
-
-    /*
-     * Reset the canvas compositing mode before finishing.
-     */
     context.globalCompositeOperation = "source-over"
 
     const generatedTexture = new CanvasTexture(canvas)
@@ -291,12 +493,6 @@ function StarNode({ node }: PlanetNodeProps) {
     return generatedTexture
   }, [node.path])
 
-  /*
-   * Generate a radial texture for the corona and flares.
-   *
-   * Sprites use this image like a transparent glowing billboard.
-   * Sprites automatically face the camera.
-   */
   const glowTexture = useMemo(() => {
     const canvas = document.createElement("canvas")
 
@@ -354,12 +550,6 @@ function StarNode({ node }: PlanetNodeProps) {
     return generatedTexture
   }, [])
 
-  /*
-   * Dispose GPU textures when this component is removed.
-   *
-   * Without this cleanup, repeatedly loading graphs could leave
-   * unused textures in GPU memory.
-   */
   useEffect(() => {
     return () => {
       surfaceTexture.dispose()
@@ -367,25 +557,16 @@ function StarNode({ node }: PlanetNodeProps) {
     }
   }, [surfaceTexture, glowTexture])
 
-  /*
-   * Animate the star every frame.
-   */
   useFrame((_, delta) => {
     elapsedTimeRef.current += delta
 
     const elapsedTime = elapsedTimeRef.current
 
-    /*
-     * Slowly rotate the surface.
-     */
     if (bodyRef.current) {
       bodyRef.current.rotation.y += delta * 0.045
       bodyRef.current.rotation.z += delta * 0.006
     }
 
-    /*
-     * Very small inner-glow pulse.
-     */
     if (innerGlowRef.current) {
       const innerPulse =
         1 + Math.sin(elapsedTime * 1.6) * 0.015
@@ -393,9 +574,6 @@ function StarNode({ node }: PlanetNodeProps) {
       innerGlowRef.current.scale.setScalar(innerPulse)
     }
 
-    /*
-     * Larger, slower corona pulse.
-     */
     if (coronaRef.current) {
       const coronaPulse =
         1 + Math.sin(elapsedTime * 1.15) * 0.035
@@ -405,29 +583,47 @@ function StarNode({ node }: PlanetNodeProps) {
   })
 
   return (
-    <group
-      position={node.position}
-      scale={visualSize}
-    >
-      {/* Procedural rotating star surface */}
-      <group ref={bodyRef}>
-        <mesh>
-          <sphereGeometry args={[1, 64, 64]} />
+    <group position={node.position}>
+      {(node.orbitorCount ?? 0) > 0 && (
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry
+          args={[
+            10,
+            0.08,
+            12,
+            160,
+          ]}
+        />
 
-          <meshStandardMaterial
-            map={surfaceTexture}
-            emissiveMap={surfaceTexture}
-            color="#fff4c2"
-            emissive="#ff9500"
-            emissiveIntensity={2.8}
-            roughness={0.48}
-            metalness={0}
-            toneMapped={false}
-          />
-        </mesh>
+        <meshBasicMaterial
+          color="#7dd3fc"
+          transparent
+          opacity={0.3}
+          blending={AdditiveBlending}
+          depthWrite={false}
+          toneMapped={false}
+        />
+      </mesh>
+      )}
+      <group scale={visualSize}>
+        <group ref={bodyRef}>
+          <mesh>
+            <sphereGeometry args={[1, 64, 64]} />
+
+            <meshStandardMaterial
+              map={surfaceTexture}
+              emissiveMap={surfaceTexture}
+              color="#fff4c2"
+              emissive="#ff9500"
+              emissiveIntensity={2.8}
+              roughness={0.48}
+              metalness={0}
+              toneMapped={false}
+            />
+          </mesh>
+        </group>
       </group>
 
-      {/* Tight glow directly around the surface */}
       <group ref={innerGlowRef}>
         <mesh scale={1.075}>
           <sphereGeometry args={[1, 48, 48]} />
@@ -444,7 +640,6 @@ function StarNode({ node }: PlanetNodeProps) {
         </mesh>
       </group>
 
-      {/* Larger atmospheric corona */}
       <group ref={coronaRef}>
         <mesh scale={1.3}>
           <sphereGeometry args={[1, 48, 48]} />
@@ -460,7 +655,6 @@ function StarNode({ node }: PlanetNodeProps) {
           />
         </mesh>
 
-        {/* Circular corona surrounding the star */}
         <sprite scale={[4.4, 4.4, 1]}>
           <spriteMaterial
             map={glowTexture}
@@ -473,7 +667,6 @@ function StarNode({ node }: PlanetNodeProps) {
           />
         </sprite>
 
-        {/* Bright compact glow close to the core */}
         <sprite scale={[2.65, 2.65, 1]}>
           <spriteMaterial
             map={glowTexture}
@@ -486,7 +679,6 @@ function StarNode({ node }: PlanetNodeProps) {
           />
         </sprite>
 
-        {/* Horizontal stellar flare */}
         <sprite scale={[6.5, 0.42, 1]}>
           <spriteMaterial
             map={glowTexture}
@@ -499,7 +691,6 @@ function StarNode({ node }: PlanetNodeProps) {
           />
         </sprite>
 
-        {/* Subtle vertical stellar flare */}
         <sprite scale={[0.3, 4.4, 1]}>
           <spriteMaterial
             map={glowTexture}
@@ -614,8 +805,8 @@ function GasGiantPlanet({ node }: PlanetNodeProps) {
   })
 
   const visualSize = Math.min(
-    1.4,
-    0.18 + Math.log1p(node.mass) * 0.08
+    4,
+    1.2 + Math.sqrt(node.mass) * 0.04
   )
   return (
     <group
@@ -686,6 +877,9 @@ function PlanetNode({ node }: PlanetNodeProps) {
   if (node.bodyType === "gasGiant") {
     return <GasGiantPlanet node={node} />
   }
+  if (node.bodyType === "planet") {
+    return <OceanPlanet node={node} />
+  }
   const visuals = getPlanetVisuals(node)
   const visualSize = Math.min(
     1.4, 0.18 + Math.log1p(node.mass) * 0.08
@@ -710,21 +904,23 @@ function PlanetNode({ node }: PlanetNodeProps) {
 }
 
 export function GalaxyScene(props: GalaxySceneProps) {
-  let nodes: GalaxyNode[]
+  const nodes = useMemo(() => {
+    if (props.globalData) {
+      return buildGlobalGalaxyNodes(props.globalData)
+    }
 
-  if (props.globalData) {
-    nodes = buildGlobalGalaxyNodes(props.globalData)
-  } else if (props.graphData) {
-    nodes = buildGalaxyNodes(props.graphData)
-  } else {
-    return null
-  }
+    if (props.graphData) {
+      return buildGalaxyNodes(props.graphData)
+    }
+
+    return []
+  }, [props.globalData, props.graphData])
 
   return (
     <>
-      {nodes.map((node) => {
-        return <PlanetNode key={node.id} node={node} />
-      })}
+      {nodes.map((node) => (
+        <PlanetNode key={node.id} node={node} />
+      ))}
     </>
   )
 }

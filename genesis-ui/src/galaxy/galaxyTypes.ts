@@ -16,6 +16,7 @@ export type GalaxyNode = {
     bodyType: BodyType
     position: Position3D
     mass: number
+    orbitorCount?: number
 }
 
 export type GraphLink = {

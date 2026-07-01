@@ -45,6 +45,79 @@ function classifyBodyType(mass: number) {
     }
 }
 
+function resolveGlobalCollisions(nodes: GalaxyNode[]) {
+    const minDistance = 20
+    const iterations = 50
+    for (let iteration = 0; iteration < iterations; iteration++)
+        for (let i= 0; i < nodes.length; i++) {
+            for (let j=i + 1; j < nodes.length; j++) {
+                const a = nodes[i]
+                const b = nodes[j]
+
+                const dx = b.position[0] - a.position[0]
+                const dz = b.position[2] - a.position[2]
+
+                const distance = Math.sqrt(dx * dx + dz * dz)
+
+                if (distance === 0 || distance >= minDistance) {
+                    continue
+                }
+
+                if (distance < minDistance) {
+                    const directionX = dx / distance
+                    const directionZ = dz / distance
+
+                    const overlap = minDistance - distance
+                    const pushX = directionX * overlap * 0.5
+                    const pushZ = directionZ * overlap * 0.5
+                    
+                    a.position = [
+                        a.position[0] - pushX,
+                        a.position[1],
+                        a.position[2] - pushZ,
+                    ]
+
+                    b.position = [
+                        b.position[0] + pushX,
+                        b.position[1],
+                        b.position[2] + pushZ
+                    ]
+                }
+            }
+        }
+    return nodes
+}
+
+function positionOrbitersAroundStars(
+    orbitersByStarPath: Map<string, string[]>,
+    nodebyPath: Map<string, GalaxyNode>
+) {
+
+    for (const [starPath, orbiterPaths] of orbitersByStarPath) {
+        const angleStep = (Math.PI * 2) / orbiterPaths.length
+        const orbitRadius = 10
+        const starNode = nodebyPath.get(starPath)
+
+        if (!starNode) {continue}
+
+        starNode.orbitorCount = orbiterPaths.length
+
+        for (let index = 0; index < orbiterPaths.length; index++) {
+            const angle = index * angleStep
+            const orbiterPath = orbiterPaths[index]
+            const orbiterNode = nodebyPath.get(orbiterPath)
+
+            if (!orbiterNode){continue}
+
+            orbiterNode.position = [
+                starNode.position[0] + Math.cos(angle) * orbitRadius,
+                starNode.position[1],
+                starNode.position[2] + Math.sin(angle) * orbitRadius
+            ]
+        }
+    }
+}
+
 export function buildGlobalGalaxyNodes(
     globalData: GlobalGraph
 ): GalaxyNode[] {
@@ -132,7 +205,35 @@ export function buildGlobalGalaxyNodes(
         nodeArray.push(globalNode)
     }
 
-    return nodeArray
+    const starPaths = new Set<string>()
+    const orbitersByStarPath = new Map<string, string[]>()
+
+    for (const node of nodeArray) {
+        if (node.bodyType === "star") {
+            starPaths.add(node.path)
+        }
+    }
+
+    for (const link of globalData.links) {
+        if (starPaths.has(link.target_path)){
+            const currentOrbiters = orbitersByStarPath.get(link.target_path) ?? []
+            currentOrbiters.push(link.source_path)
+            orbitersByStarPath.set(link.target_path, currentOrbiters) 
+        }         
+    }
+
+    const nodebyPath = new Map<string, GalaxyNode>()
+
+    for (const node of nodeArray) {
+        nodebyPath.set(node.path, node)
+    }
+    
+    positionOrbitersAroundStars(
+        orbitersByStarPath,
+        nodebyPath
+    )
+
+    return resolveGlobalCollisions(nodeArray)
 }
 
 export function buildGalaxyNodes(graphData: NoteGraph): GalaxyNode[] {
