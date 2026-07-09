@@ -435,3 +435,115 @@ body,
   border: none;
   border-radius: 0;
 }
+
+.galaxy-label {
+  pointer-events: none;
+  user-select: none;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: max-content;
+  max-width: 140px;
+  padding: 3px 7px;
+
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+
+  background: rgba(2, 6, 23, 0.58);
+  color: rgba(241, 245, 249, 0.9);
+
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.035em;
+  text-align: center;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 1),
+    0 0 7px rgba(148, 163, 184, 0.28);
+
+  box-shadow:
+    0 0 8px rgba(15, 23, 42, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  opacity: 0.78;
+}
+
+.galaxy-label-star {
+  max-width: 170px;
+  padding: 4px 9px;
+
+  border-color: rgba(251, 191, 36, 0.42);
+  background: rgba(45, 28, 5, 0.62);
+  color: rgba(255, 251, 235, 0.96);
+
+  font-size: 10px;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 1),
+    0 0 10px rgba(251, 191, 36, 0.45);
+
+  box-shadow:
+    0 0 14px rgba(251, 191, 36, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  opacity: 0.92;
+}
+
+.galaxy-label-gasGiant,
+.galaxy-label-planet {
+  max-width: 145px;
+
+  border-color: rgba(125, 211, 252, 0.32);
+  background: rgba(3, 20, 35, 0.56);
+  color: rgba(226, 246, 255, 0.92);
+
+  opacity: 0.84;
+}
+
+.galaxy-label-dwarf {
+  max-width: 120px;
+
+  border-color: rgba(203, 213, 225, 0.2);
+  background: rgba(15, 23, 42, 0.45);
+  color: rgba(226, 232, 240, 0.76);
+
+  font-size: 7px;
+  opacity: 0.62;
+}
+
+.galaxy-label-asteroid {
+  max-width: 95px;
+  padding: 2px 5px;
+
+  border-color: rgba(148, 163, 184, 0.12);
+  background: rgba(2, 6, 23, 0.25);
+  color: rgba(203, 213, 225, 0.5);
+
+  font-size: 6px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+
+  box-shadow: none;
+  opacity: 0.42;
+}
+
+.galaxy-label-center {
+  border-color: rgba(56, 189, 248, 0.65);
+  background: rgba(30, 64, 175, 0.52);
+  color: #ffffff;
+
+  box-shadow:
+    0 0 16px rgba(59, 130, 246, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+  opacity: 1;
+}
