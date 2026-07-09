@@ -1,4 +1,10 @@
-import type { GalaxyNode, GlobalGraph, NoteGraph } from "./galaxyTypes"
+import type {
+  BodyType,
+  GalaxyNode,
+  GlobalGraph,
+  NoteGraph,
+  VisualVariant,
+} from "./galaxyTypes"
 import { stableNoise} from "./galaxyNoise"
 
 const BACKLINK_BASE_RADIUS = 5
@@ -19,6 +25,42 @@ const GLOBAL_SPIRAL_TURNS = 1.6
 const GLOBAL_ARM_JITTER = 0.55
 const GLOBAL_RADIAL_JITTER = 3
 
+const DEBUG_GALAXY_PERF = true
+
+function logPerf(label: string, data: Record<string, unknown>) {
+    if (!DEBUG_GALAXY_PERF) return
+
+    console.groupCollapsed(label)
+    console.table(data)
+    console.groupEnd()
+}
+
+function getVisualVariant(nodePath: string, bodyType: BodyType): VisualVariant {
+    if (bodyType === "star") {
+        return "star"
+    }
+
+    if (bodyType === "gasGiant") {
+        return "gasGiant"
+    }
+
+    if (bodyType === "asteroid") {
+        return "asteroid"
+    }
+
+    if (bodyType === "dwarf") {
+        return "dwarf"
+    }
+
+    const variantNoise = stableNoise(`visual-variant:${nodePath}`)
+
+    if (variantNoise < 0.34) {
+        return "ocean"
+    }
+
+    return "ice"
+}
+
 function getNoteName(path: string) {
     const noteName = path.split(/[\\/]/).pop()
 
@@ -31,13 +73,13 @@ function classifyBodyType(mass: number) {
     if (mass < 200) {
         return "asteroid"
     }
-    else if (mass < 500) {
+    else if (mass < 1000) {
         return "dwarf"
     }
-    else if (mass < 1500) {
+    else if (mass < 2500) {
         return "planet"
     }
-    else if (mass < 2000) {
+    else if (mass < 3000) {
         return "gasGiant"
     }
     else{
@@ -46,11 +88,19 @@ function classifyBodyType(mass: number) {
 }
 
 function resolveGlobalCollisions(nodes: GalaxyNode[]) {
+    const startTime = performance.now()
+
     const minDistance = 20
     const iterations = 50
+
+    let pairChecks = 0
+    let pushes = 0
+
     for (let iteration = 0; iteration < iterations; iteration++)
         for (let i= 0; i < nodes.length; i++) {
             for (let j=i + 1; j < nodes.length; j++) {
+                pairChecks++
+
                 const a = nodes[i]
                 const b = nodes[j]
 
@@ -82,9 +132,21 @@ function resolveGlobalCollisions(nodes: GalaxyNode[]) {
                         b.position[1],
                         b.position[2] + pushZ
                     ]
+                    pushes++
                 }
             }
         }
+
+    const endTime = performance.now()
+
+    logPerf("[Galaxy Perf] resolveGlobalCollisions", {
+        nodes: nodes.length,
+        iterations,
+        pairChecks,
+        pushes,
+        milliseconds: Number((endTime - startTime).toFixed(2)),
+    })
+
     return nodes
 }
 
@@ -121,7 +183,11 @@ function positionOrbitersAroundStars(
 export function buildGlobalGalaxyNodes(
     globalData: GlobalGraph
 ): GalaxyNode[] {
+    const totalStart = performance.now()
+
     const nodeArray: GalaxyNode[] = []
+
+    const countStart = performance.now()
 
     const backlinksCount = new Map<string, number>()
     const outgoinglinksCount = new Map<string, number>()
@@ -133,6 +199,9 @@ export function buildGlobalGalaxyNodes(
         outgoinglinksCount.set(link.source_path, currentOutgoing +1)
     }
 
+    const countEnd = performance.now()
+
+    const placementStart = performance.now()
 
     for (const note of globalData.nodes) {
         const radiusNoise = stableNoise(`radius:${note.path}`)
@@ -192,18 +261,25 @@ export function buildGlobalGalaxyNodes(
         const outgoing = outgoinglinksCount.get(note.path) ?? 0
         const mass = backlinks + outgoing * 0.35
 
+        const bodyType = classifyBodyType(mass)
+
         const globalNode: GalaxyNode = {
             id: note.id,
             path: note.path,
             label: note.label,
             kind: "global",
-            bodyType: classifyBodyType(mass),
+            bodyType,
+            visualVariant: getVisualVariant(note.path, bodyType),
             position: [x, y, z],
-            mass: mass,
+            mass,
         }
 
         nodeArray.push(globalNode)
     }
+
+    const placementEnd = performance.now()
+
+    const starStart = performance.now()
 
     const starPaths = new Set<string>()
     const orbitersByStarPath = new Map<string, string[]>()
@@ -233,7 +309,35 @@ export function buildGlobalGalaxyNodes(
         nodebyPath
     )
 
-    return resolveGlobalCollisions(nodeArray)
+    const starEnd = performance.now()
+
+    const collisionStart = performance.now()
+    const resolvedNodes = resolveGlobalCollisions(nodeArray)
+    const collisionEnd = performance.now()
+
+    const totalEnd = performance.now()
+
+    const bodyTypeCounts = resolvedNodes.reduce<Record<string, number>>(
+        (counts, node) => {
+            counts[node.bodyType] = (counts[node.bodyType] ?? 0) + 1
+            return counts
+        },
+        {}
+    )
+
+    logPerf("[Galaxy Perf] buildGlobalGalaxyNodes", {
+        nodes: globalData.nodes.length,
+        links: globalData.links.length,
+        stars: starPaths.size,
+        backlinkAndOutgoingCountMs: Number((countEnd - countStart).toFixed(2)),
+        placementMs: Number((placementEnd - placementStart).toFixed(2)),
+        starAndOrbiterMs: Number((starEnd - starStart).toFixed(2)),
+        collisionMs: Number((collisionEnd - collisionStart).toFixed(2)),
+        totalMs: Number((totalEnd - totalStart).toFixed(2)),
+        ...bodyTypeCounts,
+    })
+
+    return resolvedNodes
 }
 
 export function buildGalaxyNodes(graphData: NoteGraph): GalaxyNode[] {

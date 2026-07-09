@@ -132,32 +132,27 @@ function SourceCard(props: SourceCardProps) {
 
 function GraphExplorer(props: GraphExplorerProps) {
   return (
-    <>
-      <input
-        value={props.selectedNotePath}
-        onChange={(event) => {
-          props.setSelectedNotePath(event.target.value)
-        }}
+    <div className="graph-explorer">
+      <div className="graph-controls">
+        <button
+          className="global-graph-button"
+          onClick={() => {
+            props.loadGlobalGraph()
+          }}
+        >
+          Load Global Graph
+        </button>
+
+        <span className="graph-status">
+          Status: {props.graphStatus}
+        </span>
+      </div>
+
+      <GalaxyCanvas
+        graphData={props.graphData}
+        globalData={props.globalData}
       />
-      <button
-        onClick={() => {
-          props.handlePath()
-        }}
-      >
-        Load Graph
-      </button>
-      <button
-        onClick={() => {
-          props.loadGlobalGraph()
-        }}
-      >
-        Load Global Graph
-      </button>
-      <p>Status: {props.graphStatus}</p>
-      <p>Outgoing: {props.graphData ? props.graphData.outgoing.length : 0}</p>
-      <p>Backlinks: {props.graphData ? props.graphData.backlinks.length : 0}</p>
-      <GalaxyCanvas graphData={props.graphData} globalData={props.globalData} />
-    </>
+    </div>
   )
 }
 
@@ -315,7 +310,9 @@ function App() {
     }
 
     return (
-        <main className="app-shell">    
+        <main
+          className={`app-shell ${activeTab === "graph" ? "graph-mode" : ""}`}
+        >  
           <section className="hero-section">
             <GenesisHeader />
           <div className="tab-bar">

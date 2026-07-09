@@ -1,22 +1,40 @@
 export type GalaxyNodeKind = "center" | "outgoing" | "backlink" | "global"
-type BodyType =
+
+export type BodyType =
     | "asteroid"
     | "dwarf"
     | "planet"
     | "gasGiant"
     | "star"
 
+export type VisualVariant =
+  | "asteroid"
+  | "dwarf"
+  | "ocean"
+  | "ice"
+  | "rocky"
+  | "gasGiant"
+  | "star"
+
+export type RenderTier =
+  | "low"
+  | "medium"
+  | "high"
+  | "hero"
+
 export type Position3D = [number, number, number]
 
 export type GalaxyNode = {
-    id: string
-    path: string
-    label: string
-    kind: GalaxyNodeKind
-    bodyType: BodyType
-    position: Position3D
-    mass: number
-    orbitorCount?: number
+  id: string
+  path: string
+  label: string
+  kind: GalaxyNodeKind
+  bodyType: BodyType
+  visualVariant?: VisualVariant
+  renderTier?: RenderTier
+  position: Position3D
+  mass: number
+  orbitorCount?: number
 }
 
 export type GraphLink = {
