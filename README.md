@@ -2,13 +2,13 @@
 
 > Open Source Semantic Intelligence Platform
 
-**98.75% Top-5 Retrieval Success • 0.79 MRR • 113ms Average Retrieval Latency • 2,000+ Notes Indexed**
+**98.75% Top-5 Retrieval Success • 0.79 MRR • 59ms Average Retrieval Latency • 2,000+ Notes Indexed • Three.js Galaxy Graph v1**
 
 Genesis is a local-first semantic intelligence platform that transforms personal knowledge bases into searchable, explainable, AI-assisted systems.
 
-Built around Obsidian vaults, Genesis combines lexical search, semantic retrieval, query analysis, and local language models to provide grounded answers backed by source material.
+Built around Obsidian vaults, Genesis combines lexical search, semantic retrieval, query analysis, local language models, and an interactive Three.js knowledge graph to provide grounded answers backed by source material.
 
-Unlike traditional AI assistants, Genesis prioritizes retrieval quality, transparency, evaluation, and user ownership. Every major retrieval component is measurable, debuggable, and designed to run locally.
+Unlike traditional AI assistants, Genesis prioritizes retrieval quality, transparency, evaluation, visual exploration, and user ownership. Every major retrieval component is measurable, debuggable, and designed to run locally.
 
 ---
 
@@ -17,6 +17,31 @@ Unlike traditional AI assistants, Genesis prioritizes retrieval quality, transpa
 ![Genesis Demo](gifs/Animation.gif)
 
 *Natural language search, hybrid retrieval, source attribution, and grounded AI responses powered entirely by local infrastructure.*
+
+---
+
+## Three.js Galaxy Graph
+
+![Genesis Galaxy Graph](screenshots/galaxy-graph.png)
+
+*Genesis now includes a v1 Three.js-powered galaxy graph that transforms an Obsidian vault into an explorable 3D knowledge system.*
+
+Instead of rendering every note as another point in a traditional graph, Genesis classifies notes by connection mass and visualizes them as asteroids, dwarf planets, planets, gas giants, and stars.
+
+The galaxy graph is designed to make large personal knowledge bases easier to explore visually while preserving the underlying structure of the note graph.
+
+Current Galaxy Graph v1 features:
+
+* Global graph rendering
+* Three.js-powered 3D visualization
+* Procedural galaxy layout
+* Node mass classification
+* Asteroids, dwarf planets, planets, gas giants, and stars
+* Modular planet body rendering
+* Dynamic node labels
+* Instanced asteroid rendering
+* Orbit-style system visualization
+* Scalable rendering for 2,000+ notes
 
 ---
 
@@ -33,16 +58,17 @@ Unlike traditional AI assistants, Genesis prioritizes retrieval quality, transpa
 | Retrieval Strategy        | Hybrid Retrieval + RRF |
 | AI Runtime                | Ollama                 |
 | Storage                   | SQLite + ChromaDB      |
+| Graph Visualization       | Three.js + React       |
 
 ---
 
 ## Why Genesis?
 
-Modern AI assistants are only as useful as the information they can retrieve.
+Modern AI assistants are only as useful as the information they can retrieve and the context they can help users understand.
 
-Genesis was created to explore how local AI systems can combine structured retrieval, semantic search, and contextual reasoning to provide grounded answers over large personal knowledge bases.
+Genesis was created to explore how local AI systems can combine structured retrieval, semantic search, contextual reasoning, and visual knowledge exploration to provide grounded answers over large personal knowledge bases.
 
-The project began as a retrieval engine for Obsidian vaults and has evolved into a semantic intelligence platform focused on search quality, observability, evaluation, and long-term knowledge management.
+The project began as a retrieval engine for Obsidian vaults and has evolved into a semantic intelligence platform focused on search quality, observability, evaluation, long-term knowledge management, and interactive graph-based exploration.
 
 ---
 
@@ -78,6 +104,19 @@ The project began as a retrieval engine for Obsidian vaults and has evolved into
 * Source-backed responses
 * Fully local workflow
 
+### Galaxy Graph Visualization
+
+* Three.js-powered global graph
+* React-based interactive graph UI
+* Procedural 3D galaxy layout
+* Node classification by connection mass
+* Asteroids, dwarf planets, planets, gas giants, and stars
+* Modular planet visual components
+* Node label rendering
+* Instanced asteroid rendering
+* Orbit-based visual systems
+* Scalable rendering for large note vaults
+
 ### Evaluation & Observability
 
 * Automated retrieval benchmark suite
@@ -95,6 +134,7 @@ The project began as a retrieval engine for Obsidian vaults and has evolved into
 | --------------- | ---------------------------- |
 | Language        | Python                       |
 | Frontend        | React + TypeScript           |
+| 3D Rendering    | Three.js + React Three Fiber |
 | Backend         | FastAPI                      |
 | Database        | SQLite                       |
 | Vector Database | ChromaDB                     |
@@ -167,6 +207,47 @@ The project began as a retrieval engine for Obsidian vaults and has evolved into
 
 ---
 
+## Galaxy Graph Architecture
+
+```text
+                Obsidian Vault
+                        │
+                        ▼
+                 Notes + Links
+                        │
+                        ▼
+              Global Graph Builder
+                        │
+                        ▼
+             Node Mass Calculation
+                        │
+                        ▼
+        ┌───────────────┴───────────────┐
+        ▼                               ▼
+
+  Visual Classification          Graph Positioning
+ Asteroid / Planet / Star        Galaxy Layout System
+
+        └───────────────┬───────────────┘
+                        ▼
+
+             Three.js Galaxy Renderer
+                        │
+                        ▼
+
+        Modular Planet + Star Components
+                        │
+                        ▼
+
+      Labels, Orbits, Instanced Asteroids
+                        │
+                        ▼
+
+          Interactive 3D Knowledge Graph
+```
+
+---
+
 ## Retrieval Performance
 
 Genesis includes a dedicated retrieval evaluation harness used to measure retrieval quality and system performance.
@@ -177,7 +258,7 @@ Genesis includes a dedicated retrieval evaluation harness used to measure retrie
 | ------------------------- | ------- |
 | Queries Evaluated         | 80      |
 | Top-5 Retrieval Success   | 98.75%  |
-| Mean Reciprocal Rank (MRR)|	0.79    |
+| Mean Reciprocal Rank (MRR)| 0.79    |
 | Average Found Rank        | 1.58    |
 | Average Retrieval Latency | 59ms    |
 | Pass Rate                 | 79 / 80 |
@@ -195,6 +276,8 @@ The benchmark suite evaluates retrieval performance across:
 
 ---
 
+## Interface
+
 ![React Frontend](screenshots/frontend.png)
 
 The current Genesis interface provides a local-first search experience for exploring and interacting with a personal knowledge base.
@@ -206,6 +289,20 @@ Features currently available:
 * Source attribution
 * Retrieval-backed responses
 * Local-first workflow
+* Global knowledge graph view
+* Three.js galaxy visualization
+
+---
+
+## Galaxy Graph Screenshots
+
+![Galaxy Overview](screenshots/galaxy-overview.png)
+
+*Global galaxy view generated from a 2,000+ note Obsidian vault.*
+
+![Galaxy Labels](screenshots/galaxy-labels.png)
+
+*Node labels make the galaxy graph navigable while preserving the visual structure of the knowledge base.*
 
 ---
 
@@ -259,6 +356,12 @@ python main.py
 * Grounded Responses
 * React Frontend
 * FastAPI Backend
+* Global Galaxy Graph
+* Three.js Graph Rendering
+* Procedural Planet Visuals
+* Node Labels
+* Instanced Asteroid Rendering
+* Modular Galaxy Rendering Structure
 
 ### In Progress
 
@@ -266,6 +369,10 @@ python main.py
 * Enhanced Evaluation Coverage
 * Frontend Refinement
 * Retrieval Performance Optimization
+* Galaxy Graph Visual Refinement
+* Camera Controls
+* Relationship Visualization
+* Semantic Graph Clustering
 
 ### Planned
 
@@ -276,6 +383,9 @@ python main.py
 * Project Intelligence Layer
 * Knowledge Relationship Mapping
 * Advanced Evaluation Metrics
+* AI-Powered Graph Exploration
+* Agentic Research Workflow
+* Solar System-Level Navigation
 
 ---
 
@@ -297,10 +407,14 @@ Users should retain ownership of their knowledge, models, and data.
 
 Every major capability should be benchmarked before expansion.
 
+### Exploration Before Static Views
+
+Large knowledge bases should not only be searched. They should be explored, mapped, and understood visually.
+
 ---
 
 ## Vision
 
-Genesis is evolving beyond a traditional retrieval system toward a semantic intelligence platform capable of understanding, organizing, and reasoning over personal knowledge.
+Genesis is evolving beyond a traditional retrieval system toward a semantic intelligence platform capable of understanding, organizing, visualizing, and reasoning over personal knowledge.
 
-The long-term objective is to create a local-first intelligence layer that helps users retrieve information, preserve context, discover relationships, and build understanding over time.
+The long-term objective is to create a local-first intelligence layer that helps users retrieve information, preserve context, discover relationships, explore knowledge visually, and build understanding over time.
